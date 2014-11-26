@@ -1,0 +1,110 @@
+#!/usr/bin/env python
+
+import argparse
+import struct
+import sys
+
+import rospy
+
+from geometry_msgs.msg import (
+    PoseStamped,
+    Pose,
+    Point,
+    Quaternion,
+)
+from std_msgs.msg import Header
+
+from baxter_core_msgs.srv import (
+    SolvePositionIK,
+    SolvePositionIKRequest,
+)
+
+import baxter_interface
+
+from baxter_interface import CHECK_VERSION
+
+right = baxter_interface.Limb('right')
+
+def ik_test(msg):
+    limb = baxter_interface.Limb('right')
+    rospy.init_node("rsdk_ik_service_client")
+    ns = "ExternalTools/" + limb + "/PositionKinematicsNode/IKService"
+    iksvc = rospy.ServiceProxy(ns, SolvePositionIK)
+    ikreq = SolvePositionIKRequest()
+    # hdr = Header(stamp=rospy.Time.now(), frame_id='base')
+
+    rospy.loginfo("Received target location message!")
+
+    position = msg.pose.position
+    rospy.loginfo("Point Position: [ %f, %f, %f ]"%(position.x, position.y, position.z))
+
+    quat = msg.pose.orientation
+    rospy.loginfo("Quat Orientation: [ %f, %f, %f, %f]"%(quat.x, quat.y, quat.z, quat.w))
+ 
+    ikreq.pose_stamp.append(msg[limb])
+
+    try:
+        rospy.wait_for_service(ns, 5.0)
+        resp = irksvc(ikreq)
+    except (rospy.ServiceException, rospy.ROSException), e:
+        rospy.logerr("Service call failed: %s" % (e,))
+        return 1
+
+    # Check if result valid, and type of seed ultimately used to get solution
+    # convert rospy's string representation of uint8[]'s to int's
+    resp_seeds = struct.unpack('<%dB' % len(resp.result_type),
+                               resp.result_type)
+    if (resp_seeds[0] != resp.RESULT_INVALID):
+        seed_str = {
+                    ikreq.SEED_USER: 'User Provided Seed',
+                    ikreq.SEED_CURRENT: 'Current Joint Angles',
+                    ikreq.SEED_NS_MAP: 'Nullspace Setpoints',
+                   }.get(resp_seeds[0], 'None')
+        print("SUCCESS - Valid Joint Solution Found from Seed Type: %s" %
+              (seed_str,))
+        # Format solution into Limb API-compatible dictionary
+        limb_joints = dict(zip(resp.joints[0].name, resp.joints[0].position))
+        print "\nIK Joint Solution:\n", limb_joints
+        print "------------------"
+        print "Response Message:\n", resp
+    else:
+        print("INVALID POSE - No Valid Joint Solution Found.")
+    angles = limb_joints[1]
+    print angles
+    return angles
+    return limb
+
+    limb.move_to_joint_positions(angles)
+
+
+def main():
+    print("Initializing node... ")
+    rospy.init_node("rsdk_joint_position_file_playback")
+    print("Getting robot state... ")
+    rs = baxter_interface.RobotEnable(CHECK_VERSION)
+    init_state = rs.state().enabled
+
+    print("Enabling robot... ")
+    rs.enable()
+#     arg_fmt = argparse.RawDescriptionHelpFormatter
+#     parser = argparse.ArgumentParser(formatter_class=arg_fmt,
+#                                      description=main.__doc__)
+#     parser.add_argument(
+#         '-l', '--limb', choices=['left', 'right'], required=True,
+#         help="the limb to test"
+#     )
+#     args = parser.parse_args(rospy.myargv()[1:])
+
+#     return ik_test(args.limb)
+
+# def move_robot(limb,angles):
+# 	angles = ik_test(limb,msg)
+# 	limb.move_to_joint_positions(angles)
+
+def listener():
+	rospy.init_node('target_pose_listener',anonymous = True)
+	rospy.Subscriber("/visp_auto_tracker/object_position",PoseStamped,ik_test)
+	rospy.spin()
+
+if __name__ == '__main__':
+    sys.exit(main())
