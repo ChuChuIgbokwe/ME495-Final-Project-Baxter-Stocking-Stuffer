@@ -241,8 +241,8 @@ def target_pose_listener():
     rospy.init_node('target_pose_listener',anonymous = True)
 
     rospy.Subscriber("/robot/limb/left/endpoint_state",EndpointState,getposeee)
-    rospy.Subscriber("/visp_auto_tracker/object_position",PoseStamped,getposetag)
-
+    # rospy.Subscriber("/visp_auto_tracker/object_position",PoseStamped,getposetag)
+    rospy.Subscriber("/ar_single_board/pose",PoseStamped,getposetag)
 
     while not second_flag:
         pass
