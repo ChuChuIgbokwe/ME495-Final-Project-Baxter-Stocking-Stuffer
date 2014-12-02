@@ -18,9 +18,11 @@
     <param name="model_name" type="string" value="pattern" />
     <param name="debug_display" type="bool" value="True" />
 	      
-    <remap from="/visp_auto_tracker/camera_info" to="/cameras/right_hand_camera/camera_info"/>
-    <remap from="/visp_auto_tracker/image_raw" to="/cameras/right_hand_camera/image"/>
+    <remap from="/visp_auto_tracker/camera_info" to="/cameras/left_hand_camera/camera_info"/>
+    <remap from="/visp_auto_tracker/image_raw" to="/cameras/left_hand_camera/image"/>
   </node>
+
+  <node pkg="elf_baxter" type="iknodebean.py" name="iknode" output="screen"/>
 
   <!-- Launch the usb camera acquisition node -->
   <!--node pkg="usb_cam" type="usb_cam_node" name="usb_cam" output="screen">      
