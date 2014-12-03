@@ -27,14 +27,15 @@ from baxter_interface import CHECK_VERSION
 from baxter_core_msgs.msg import EndpointState
 
 
+#Setting flags to False
 first_flag = False
 second_flag = False
 
 
+#Initialization of global variables
 tag_msg = PoseStamped()
 
 pose_ee = np.full((7,1), None)
-
 
 previous_tag = np.zeros((1,3))
 
@@ -42,6 +43,7 @@ movement = 0
 
 
 
+#Gets pose of end-effector from Baxter
 def getposeee(msg):
 
     pose = msg.pose
@@ -69,12 +71,14 @@ def getposeee(msg):
 
 
 
- 
+
+#Gets the pose of tag from QR code
 def getposetag(msg):
 
     global tag_msg, second_flag
 
     tag_msg = msg
+    print tag_msg
 
     second_flag = True
 
@@ -83,19 +87,19 @@ def getposetag(msg):
 
 
 
-def ik_test(msg):
+def baxtermovement(msg):
     rospy.loginfo("ENTERED THE IK_TEST LOOP")
-    
 
-    print "message=", msg
 
     rospy.loginfo("Getting robot state... ")
     rs = baxter_interface.RobotEnable(CHECK_VERSION)
     init_state = rs.state().enabled
-    rospy.loginfo("Enabling robot... ")
-	
+
+
+    rospy.loginfo("Enabling robot... ")	
     rs.enable()
 
+    #Defining left limb for IK Service Client
     limbw = "left"
     ns = "ExternalTools/" + limbw + "/PositionKinematicsNode/IKService"
 
@@ -106,14 +110,14 @@ def ik_test(msg):
     rospy.loginfo("Received target location message!")
  
     
-
+    #Wait for left gripper's end effector pose
     while not first_flag:
         pass
-    rospy.loginfo("passed while loop")
+
 
     print "position of end-effector=",  pose_ee[0:3,:]
 
-
+    #Store pose of QR code from camera into local variables
     position_visp = msg.pose.position
     quat_visp = msg.pose.orientation
 
@@ -129,21 +133,16 @@ def ik_test(msg):
     tag_quat_z = quat_visp.z
     tag_quat_w = quat_visp.w
 
-    print "Previous Tag Position", previous_tag[0,0],previous_tag[0,1],previous_tag[0,2]
-    print "Tag Position", tag_pos_x,tag_pos_y,tag_pos_z
-    print "Difference", math.fabs(tag_pos_x - previous_tag[0,0]),math.fabs(tag_pos_y - previous_tag[0,1]),math.fabs(tag_pos_z - previous_tag[0,2])
 
+    #Determines is there was a change from previous tag position and current
     if math.fabs(tag_pos_x - previous_tag[0,0])<1e-2 and math.fabs(tag_pos_y - previous_tag[0,1])<1e-2 and math.fabs(tag_pos_z - previous_tag[0,2])<1e-1:
-        print movement
+        print "NO movement"
     else:
         global movement
-
         movement = movement+1
 
+    #Account for changes in tag position and only move towards the tag once
     if movement == 0:
-        print "No movement", movement
-    else:
-        print "Movement", movement
         tag_pos_x = 0
         tag_pos_y = 0
         tag_pos_z = 0
@@ -151,12 +150,21 @@ def ik_test(msg):
         tag_quat_y = 0
         tag_quat_z = 0
         tag_quat_w = 1
-   
+    elif movement == 2:
+        movement = 0
+        tag_pos_x = 0
+        tag_pos_y = 0
+        tag_pos_z = 0
+        tag_quat_x = 0
+        tag_quat_y = 0
+        tag_quat_z = 0
+        tag_quat_w = 1
+        # #Close Baxter's left gripper
+        baxterleft = baxter_interface.Gripper('left')
+        baxterleft.close()
 
-    movement = 0
-    
-    print "Tag Position - Updated Possibly", previous_tag
 
+    #New pose to move towards
     pointx = pose_ee[0,0] - tag_pos_x
     pointy = pose_ee[1,0] - tag_pos_y
     pointz = pose_ee[2,0] - tag_pos_z
@@ -167,6 +175,7 @@ def ik_test(msg):
     quatw = pose_ee[6,0]# - tag_quat_w
 
 
+    #Combine position and orientation in a PoseStamped() message
     move_to_pose = PoseStamped()
     move_to_pose.header=Header(stamp=rospy.Time.now(), frame_id='base')
     move_to_pose.pose.position=Point(
@@ -185,6 +194,8 @@ def ik_test(msg):
     print "Desired position to move to", move_to_pose.pose.position
     print "Desired orientation to move to", move_to_pose.pose.orientation
 
+
+    #Request IK Service Client with new pose to move to
     ikreq.pose_stamp.append(move_to_pose)
     try:
         #rospy.wait_for_service(ns, 5.0)
@@ -218,10 +229,12 @@ def ik_test(msg):
         rospy.loginfo("INVALID POSE - No Valid Joint Solution Found.")
 
 
+    #Move left limb to limb_joints found from IK
     limb = baxter_interface.Limb('left')
     limb.move_to_joint_positions(limb_joints)
 
-
+ 
+    #Update previous_tag with the distance from Baxter's camera to QR code
     global previous_tag
     previous_tag[0,0] = msg.pose.position.x
     previous_tag[0,1] = msg.pose.position.y
@@ -231,7 +244,7 @@ def ik_test(msg):
     rospy.sleep(2.75)
     print("I just woke up")
 
-    return limb_joints
+    return
 
 
 
@@ -240,16 +253,27 @@ def ik_test(msg):
 def target_pose_listener():
     rospy.init_node('target_pose_listener',anonymous = True)
 
+    #Subscribe to Baxter's left endpoint state and Visp autotracker messages
     rospy.Subscriber("/robot/limb/left/endpoint_state",EndpointState,getposeee)
-    # rospy.Subscriber("/visp_auto_tracker/object_position",PoseStamped,getposetag)
-    rospy.Subscriber("/ar_single_board/pose",PoseStamped,getposetag)
+    rospy.Subscriber("/visp_auto_tracker/object_position",PoseStamped,getposetag)
+    # rospy.Subscriber("/ar_single_board/pose",PoseStamped,getposetag)
 
+    #Calibrate left gripper
+    baxterleft = baxter_interface.Gripper('left')
+    baxterleft.calibrate()
+
+
+    #Move to home position
+
+
+
+    #Wait for QR pose message to be stored
     while not second_flag:
         pass
 
-
+    #Run main part of loop while rospy is not shutdown
     while not rospy.is_shutdown():
-        ik_test(tag_msg)
+        baxtermovement(tag_msg)
    
     rospy.spin()
 
