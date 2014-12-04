@@ -26,8 +26,14 @@ from baxter_interface import CHECK_VERSION
 
 from baxter_core_msgs.msg import EndpointState
 
+import ar_track_alvar_msgs
+
+from ar_track_alvar_msgs import AlvarMarker
 
 # So this is how I envision this node playing a role so far... this node will be functioning at the stockings. It will be listening either to the color detection node or tag tracking node. Upon detection of a certain color or tag, it will select the object from the list that it needs to search for and grab using color detection (movement_visp)- in other words, it will send a color to that node in the form of a string
+
+tag_msg = PoseStamped()
+def get_id_tag(msg):
 
 def identify_pres(msg):
 	if msg == "Person 1":
@@ -50,11 +56,9 @@ def identify_pres(msg):
 		print "Person not identified- will search again"
 		baxter_sweep_stocking()
 
-
-
-def tag_identity_listener:
+def tag_identity_listener():
 	rospy.init_node('tag_identity_listener',anonymous = True)
-	rospy.Subscriber("/colornodename/colortopicname",String,identify_pres)
+	rospy.Subscriber("/ar_pose_marker",ar_track_alvar_msgs/AlvarMarkers,identify_pres)
 
 
 if __name__ == '__main__':
