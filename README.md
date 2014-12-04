@@ -2,7 +2,7 @@ ME495-Final-Project-Baxter-Stocking-Stuffer
 ===========================================
 
 Ho-Ho-Ho. Baxter as Santa Claus
-Group: Sabeen Admani, Josh Marino, Chukwunyere Igbokwe, and Andrew Turchina
+Group: Sabeen Admani, Chukwunyere Igbokwe, Josh Marino, and Andrew Turchina
 
 #Objective
 The goal of this project is to get Baxter to stuff stockings that are hung on a wall with presents that are scattered across a table. He wil identify a stocking, figure out which gift he needs to find on the table, locate it, and then place it in the stocking.
@@ -11,12 +11,14 @@ The goal of this project is to get Baxter to stuff stockings that are hung on a 
 (Here include the rqt_graph of the package while it is running)
 
 #Implementation
+##Equipment and Hardware Requirements
+1. Baxter  
+2. [ROS Indigo](http://wiki.ros.org/ROS/Installation) on Ubuntu 14.04  
+3. Asus Xtion Pro Camera
 ##Preliminary Steps
-Note: We are under the assumption that you have ROS up and running on your system. The version of ROS that we are using is Indigo.
+Setup Baxter
+Rethink Robotics has [Baxter Setup](http://sdk.rethinkrobotics.com/wiki/Baxter_Setup) instructions and [Workstation Setup](http://sdk.rethinkrobotics.com/wiki/Workstation_Setup) instructions.   
 
-1. Setup Baxter
-
-2. Setup Computer
 ###Dependencies
 
 
