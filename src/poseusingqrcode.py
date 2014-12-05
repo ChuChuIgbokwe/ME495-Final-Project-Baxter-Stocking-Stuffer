@@ -100,15 +100,14 @@ def NewPoseUsingQRcode(msg):
     while not second_flag:
         pass
  
-    
-    print "Position of end-effector=",  pose_ee[0:3,:]
+    #print "Position of end-effector=",  pose_ee[0:3,:]
 
     #Store pose of QR code from camera into local variables
     position_visp = msg.pose.position
     quat_visp = msg.pose.orientation
 
-    rospy.loginfo("Tag Point Position: [ %f, %f, %f ]"%(position_visp.x, position_visp.y, position_visp.z))
-    rospy.loginfo("Tag Quat Orientation: [ %f, %f, %f, %f]"%(quat_visp.x, quat_visp.y, quat_visp.z, quat_visp.w))
+    #rospy.loginfo("Tag Point Position: [ %f, %f, %f ]"%(position_visp.x, position_visp.y, position_visp.z))
+    #rospy.loginfo("Tag Quat Orientation: [ %f, %f, %f, %f]"%(quat_visp.x, quat_visp.y, quat_visp.z, quat_visp.w))
 
 
     tag_pos_x = position_visp.x
@@ -122,9 +121,7 @@ def NewPoseUsingQRcode(msg):
 
 
     #Determines is there was a change from previous tag position and current
-    if math.fabs(tag_pos_x - previous_tag[0,0])<1e-2 and math.fabs(tag_pos_y - previous_tag[0,1])<1e-2 and math.fabs(tag_pos_z - previous_tag[0,2])<1e-1:
-        print "NO movement"
-    else:
+    if math.fabs(tag_pos_x - previous_tag[0,0])>1e-2 and math.fabs(tag_pos_y - previous_tag[0,1])>1e-2 and math.fabs(tag_pos_z - previous_tag[0,2])>1e-1:
         global movement
         movement = movement+1
 
@@ -177,8 +174,8 @@ def NewPoseUsingQRcode(msg):
                     w=quatw,
                 )
 
-    print "Desired position to move to", move_to_pose.pose.position
-    print "Desired orientation to move to", move_to_pose.pose.orientation
+    #print "Desired position to move to", move_to_pose.pose.position
+    #print "Desired orientation to move to", move_to_pose.pose.orientation
 
 
     #Update previous_tag with the distance from Baxter's camera to QR code
@@ -190,6 +187,8 @@ def NewPoseUsingQRcode(msg):
 
     #Publish PoseStamped() message to move to
     pub.publish(move_to_pose)
+
+    rospy.sleep(2)
 
     return 
 
@@ -205,7 +204,6 @@ def main():
     rospy.Subscriber("/robot/limb/left/endpoint_state",EndpointState,getPoseEE)
     rospy.Subscriber("/visp_auto_tracker/object_position",PoseStamped,getPoseTag)
 
-
     #Wait for left gripper's end effector pose
     while not first_flag:
         pass
@@ -213,7 +211,7 @@ def main():
 
     #Continously running to send PoseStamped() message to Baxter
     while not rospy.is_shutdown():
-        NewPoseUsingOpenCV(tag_msg)
+        NewPoseUsingQRcode(tag_msg)
 
    
     rospy.spin()
