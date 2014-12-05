@@ -16,7 +16,7 @@ from geometry_msgs.msg import (
     Point,
     Quaternion,
 )
-from std_msgs.msg import Header
+from std_msgs.msg import String,Header
 
 from baxter_core_msgs.srv import (
     SolvePositionIK,
@@ -24,10 +24,14 @@ from baxter_core_msgs.srv import (
 )
 
 
-
 from baxter_interface import CHECK_VERSION
 
 from baxter_core_msgs.msg import EndpointState
+
+
+#Create publisher to publish center of object detected
+pub = rospy.Publisher('color_identifier', String)
+pub.publish("Red")
 
 
 #Setting flags to False
@@ -111,30 +115,8 @@ def NewPoseUsingOpenCV(msg):
     
     #Wait for position of object from OpenCV node
     while not third_flag:
-        # #New pose to move to in order to attempt to find appropriate color
-        # pointx = pose_ee[0,0]
-        # pointy = pose_ee[1,0]
-        # pointz = pose_ee[2,0] + 0.05
-
-        # #Create PoseStamped() message
-        # PoseNoObjectSeen = PoseStamped()
-        # PoseNoObjectSeen.header=Header(stamp=rospy.Time.now(), frame_id='base')
-        # PoseNoObjectSeen.pose.position=Point(
-        #                 x=pointx,
-        #                 y=pointy,
-        #                 z=pointz,
-                    
-        # PoseNoObjectSeen.pose.orientation=Quaternion(
-        #                 x=quatx,
-        #                 y=quaty,
-        #                 z=quatz,
-        #                 w=quatw,
-        #             )
-
-        # return PoseNoObjectSeen
         pass
     
-
 
     #Store position of object from OpenCV into local variables
     position_OpenCV = msg
@@ -159,10 +141,20 @@ def NewPoseUsingOpenCV(msg):
     quatz = 0
     quatw = 0
 
+
+
+    #Rangefinder distance is over object
+    if rangefinder_dist < 100:
+
+        #Close Baxter's left gripper
+        baxterleft = baxter_interface.Gripper('left')
+        baxterleft.close()
+
+
     #Rangefinder distance is over object
     if rangefinder_dist < 150:
 
-        incremental_distance = 0.015
+        incremental_distance = 0.0025
 
         #X-position of point not within range of center of frame
         if fabs(color_pos_x - 37) > 20:
@@ -188,7 +180,7 @@ def NewPoseUsingOpenCV(msg):
     #Rangefinder distance is nearly over object
     elif rangefinder_dist < 200:
     
-        incremental_distance = 0.015
+        incremental_distance = 0.005
 
         #X-position of point not within range of center of frame
         if fabs(color_pos_x - 37) > 20:
@@ -214,7 +206,7 @@ def NewPoseUsingOpenCV(msg):
     #Rangefinder distance is barely over object
     elif rangefinder_dist < 250:
  
-        incremental_distance = 0.015
+        incremental_distance = 0.01
 
         #X-position of point not within range of center of frame
         if fabs(color_pos_x - 31) > 20:
@@ -268,27 +260,29 @@ def NewPoseUsingOpenCV(msg):
     #Rangefinder distance is too far above object to get an actual value
     else:
         
-        incremental_distance = 0.025
+        incremental_distance = 0.02
 
         #X-position of point not within range of center of frame
-        if fabs(color_pos_x - 0) > 25:
+        if fabs(color_pos_x - 0) > 50:
             if color_pos_x < 0:
                 pointy = pose_ee[1,0] + incremental_distance
             else:
                 pointy = pose_ee[1,0] - incremental_distance
 
         #Y-position of point not within range of center of frame
-        if fabs(color_pos_y - 0) > 25:
+        if fabs(color_pos_y - 0) > 50:
             if color_pos_y < 0:
                 pointx = pose_ee[0,0] - incremental_distance
             else:
                 pointx = pose_ee[0,0] + incremental_distance
 
+        pointz = pose_ee[2,0] - 0.1
+
         #X-position and Y-position of point are within range of center of frame
-        if fabs(color_pos_x - 0) <= 25 and fabs(color_pos_y - 0) <= 25:
+        if fabs(color_pos_x - 0) <= 50 and fabs(color_pos_y - 0) <= 50:
             pointx = pose_ee[0,0]
             pointy = pose_ee[1,0]
-            pointz = pose_ee[2,0] - 0.05
+            pointz = pose_ee[2,0] - 0.15
 
 
 
@@ -515,7 +509,7 @@ def target_pose_listener():
     move_to_home_pose.pose.position=Point(
                     x=0.8,
                     y=0.3,
-                    z=0.1,
+                    z=0.3,
                 )
     move_to_home_pose.pose.orientation=Quaternion(
                     x=0,
