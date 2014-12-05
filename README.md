@@ -15,36 +15,48 @@ Group: Sabeen Admani, Chukwunyere Igbokwe, Josh Marino, and Andrew Turchina
 [Other Scripts](#Other Scripts)  
 [Conclusions](#Conclusions)  
 
-#<a name="Objective"></a> 
+
+<a name="Objective"></a> 
 ###Objective
 The goal of this project is to get Baxter to stuff stockings that are hung on a wall with presents that are scattered across a table. He wil identify a stocking, locate the corresponding present, and then place the present in the stocking.
+
 
 <a name="Equipment and Hardware Requirements"></a>
 ###Equipment and Hardware Requirements
 1. Baxter  
 2. [ROS Indigo](http://wiki.ros.org/ROS/Installation) on Ubuntu 14.04  
 3. Asus Xtion Pro Camera  
-###Preliminary Steps <a name="Preliminary Steps"></a>
-Setup Baxter
+
+
+<a name="Preliminary Steps"></a>
+###Preliminary Steps 
+Setup Baxter  
 Rethink Robotics has [Baxter Setup](http://sdk.rethinkrobotics.com/wiki/Baxter_Setup) instructions and [Workstation Setup](http://sdk.rethinkrobotics.com/wiki/Workstation_Setup) instructions.   
 
 
-###Project Overview <a name="Project Overview"></a>
+<a name="Project Overview"></a>
+###Project Overview 
 Outline of the steps that went into building the package
 
-###Implementation <a name="Implementation"></a>
+
+<a name="Implementation"></a>
+###Implementation 
 
 
-###Dependencies <a name="Dependencies"></a>
+<a name="Dependencies"></a>
+###Dependencies 
 
 
-###Package Installation <a name="Package Installation"></a>
+<a name="Package Installation"></a>
+###Package Installation 
 
 
-###Future Improvements <a name="Future Improvements"></a>
+<a name="Future Improvements"></a>
+###Future Improvements 
 
 
-###Other Scripts <a name="Other Scripts"></a>
+<a name="Other Scripts"></a>
+###Other Scripts 
 - `baxter_grip.py` controls the position of Baxter's gripper   
 
 - `iknodebean.py` provides a   
@@ -63,7 +75,9 @@ Outline of the steps that went into building the package
 
 - `vision_test.py`   
 
-###Conclusions <a name="Conclusions"></a>
+
+<a name="Conclusions"></a>
+###Conclusions 
 
 
 
