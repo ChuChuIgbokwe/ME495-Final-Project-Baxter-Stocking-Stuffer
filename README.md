@@ -18,7 +18,7 @@ Group: Sabeen Admani, Chukwunyere Igbokwe, Josh Marino, and Andrew Turchina
 
 <a name="Objective"></a> 
 ###Objective
-The goal of this project is to get Baxter to stuff stockings that are hung on a wall with presents that are scattered across a table. He wil identify a stocking, locate the corresponding present, and then place the present in the stocking.
+The goal of this project is to get Baxter to stuff stockings that are hung on a wall with presents that are scattered across a table. He will identify a stocking, locate the corresponding present, and then place the present in the stocking.
 
 
 <a name="Equipment and Hardware Requirements"></a>
@@ -26,30 +26,54 @@ The goal of this project is to get Baxter to stuff stockings that are hung on a 
 1. Baxter  
 2. [ROS Indigo](http://wiki.ros.org/ROS/Installation) on Ubuntu 14.04  
 3. Asus Xtion Pro Camera  
-
+4. 4 Stockings  
+5. 4 Presents of different colors  
+6. 4 AR tags  
+7. Table to place presents  
+8. Wall and hangers to place stockings  
 
 <a name="Preliminary Steps"></a>
 ###Preliminary Steps 
-Setup Baxter  
+#####Setup Baxter  
 Rethink Robotics has [Baxter Setup](http://sdk.rethinkrobotics.com/wiki/Baxter_Setup) instructions and [Workstation Setup](http://sdk.rethinkrobotics.com/wiki/Workstation_Setup) instructions.   
-
+#####Setup demo area
+There needs to be a table and presents within Baxter's reachable workspace
 
 <a name="Project Overview"></a>
 ###Project Overview 
-Outline of the steps that went into building the package
+Outline of the steps that went into building the package that will run Baxter through the program  
+
+1. Sweep the stockings  
+2. Store the tag ID and location from each stocking  
+3. Relate the stocking tag ID to a present color  
+4. Sweep the table  
+5. Identify the colors and locations of presents  
+6. Move Baxter's gripper to the present location  
+7. Pick up the present  
+8. Move Baxter's gripper to the corresponding stocking location  
+9. Drop the present into the stocking  
 
 
 <a name="Implementation"></a>
 ###Implementation 
 
 
+
+Below is what the launch file looks like:  
+```
+<launch>
+
+</launch>
+```
+
 <a name="Dependencies"></a>
 ###Dependencies 
-
+- `ar_track`
 
 <a name="Package Installation"></a>
 ###Package Installation 
-
+The following packages need to be installed
+- `ar_track_alvar $ sudo apt-get install
 
 <a name="Future Improvements"></a>
 ###Future Improvements 
@@ -69,9 +93,9 @@ Outline of the steps that went into building the package
 
 - `needed_present_identifier.py` listens to the color/tag node and selects the object needed  
 
-- `sweep_stocking.py` commands Baxter to look at the stockings and store their locations and corresponding presents  
+- `sweep_stocking.py` commands Baxter to look at the stockings and store the stocking locations and corresponding presents  
 
-- `sweep_table.py` commands Baxter to look at the table with presents and identify which present to be grasped   
+- `sweep_table.py` commands Baxter to look at the table with presents and store the present locations   
 
 - `vision_test.py`   
 
