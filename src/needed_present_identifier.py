@@ -42,45 +42,45 @@ from ar_track_alvar_msgs.msg import AlvarMarkers,AlvarMarker
 
 # tag_msg = AlvarMarkers()
 
-pub = rospy.Publisher('color_identifier',String)
-pub2 = rospy.Publisher('number',Float64)
+pub_color = rospy.Publisher('color_identifier',String)
+pub_pose = rospy.Publisher('scanned_stocking_pose',PoseStamped)
 
-def get_id_tag(msg):
-    # global tag_msg
-    tag_msg = msg
-
-    if len(tag_msg.markers)== 0:
-        tag_msg1 = tag_msg.markers
-    else:
-        temp = AlvarMarker()
-
-        tag_msg2 = tag_msg
+m = None
 
 def identify_pres(msg):
-    tag_id = tag_msg
-    if msg==1:
-        color = red
-        pub.publish(color)
-    elif msg==2:
-        color = blue
-        pub.publish(color)
-    elif msg==3:
-        color = green
-        pub.publish(color)
-    elif msg==4:
-        color = yellow
-        pub.publish(color)
-    else:
-        print "Person not identified- will search again"
-        baxter_sweep_stocking()
+    global m
+    for m in msg.markers:
+        identity = m.id
+        home = m.pose
+        print "Finding the associated present"
+        if identity==1:
+            color = "red"
+            print "Identified as person 1"
+            pub_color.publish(color)
+            pub_pose.publish(home)
+        elif identity==2:
+            color = "blue"
+            print "Identified as person 2"
+            pub_color.publish(color)
+            pub_pose.publish(home)
+        elif identity==3:
+            color = "green"
+            print "Identified as person 3"
+            pub_color.publish(color)
+            pub_pose.publish(home)
+        elif identity==4:
+            color = "yellow"
+            print "Identified as person 4"
+            pub_color.publish(color)
+            pub_pose.publish(home)
+        else:
+            print "Person not identified- will search again"
+            baxter_sweep_stocking()
+        return
 
 def tag_identity_listener():
     rospy.init_node('tag_identity_listener',anonymous = True)
-    # rospy.Subscriber("/ar_pose_marker",AlvarMarkers,get_id_tag)
-    rospy.Subscriber("/number",Float64,get_id_tag)
-    # temp = Float64()
-    # temp = 3
-    # pub2.publish(temp)
+    rospy.Subscriber("/ar_pose_marker",AlvarMarkers,identify_pres)
     print "I subscribed"
     rospy.spin()
 
