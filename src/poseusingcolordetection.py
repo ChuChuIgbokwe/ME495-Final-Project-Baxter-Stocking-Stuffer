@@ -30,7 +30,8 @@ from baxter_core_msgs.msg import EndpointState
 
 
 #Create publisher to publish center of object detected
-pub_color = rospy.Publisher('color_identifier', String)
+pub_color = rospy.Publisher('color_identifier', String, queue_size=10, latch=True)
+color = "red"
 
 
 #Setting flags to False
@@ -99,7 +100,6 @@ def NewPoseUsingOpenCV(msg):
         pass
     
 
-
     #Store position of object from OpenCV into local variables
     position_OpenCV = msg
 
@@ -132,6 +132,10 @@ def NewPoseUsingOpenCV(msg):
         baxterleft = baxter_interface.Gripper('left')
         baxterleft.close()
 
+        rospy.sleep(0.5)
+
+        pointz = pose_ee[2,0] + 0.3
+
 
     #Rangefinder distance is over object
     if rangefinder_dist < 150:
@@ -154,35 +158,31 @@ def NewPoseUsingOpenCV(msg):
 
         #X-position and Y-position of point are within range of center of frame
         if fabs(color_pos_x - 37) <= 20 and fabs(color_pos_y - 94) <= 20:
-            pointx = pose_ee[0,0]
-            pointy = pose_ee[1,0]
             pointz = pose_ee[2,0] - 0.05
 
 
-    #Rangefinder distance is nearly over object
-    elif rangefinder_dist < 200:
+    # #Rangefinder distance is nearly over object
+    # elif rangefinder_dist < 200:
     
-        incremental_distance = 0.005
+    #     incremental_distance = 0.005
 
-        #X-position of point not within range of center of frame
-        if fabs(color_pos_x - 37) > 20:
-            if color_pos_x < 37:
-                pointy = pose_ee[1,0] + incremental_distance
-            else:
-                pointy = pose_ee[1,0] - incremental_distance
+    #     #X-position of point not within range of center of frame
+    #     if fabs(color_pos_x - 37) > 20:
+    #         if color_pos_x < 37:
+    #             pointy = pose_ee[1,0] + incremental_distance
+    #         else:
+    #             pointy = pose_ee[1,0] - incremental_distance
 
-        #Y-position of point not within range of center of frame
-        if fabs(color_pos_y - 94) > 20:
-            if color_pos_y < 94:
-                pointx = pose_ee[0,0] - incremental_distance
-            else:
-                pointx = pose_ee[0,0] + incremental_distance
+    #     #Y-position of point not within range of center of frame
+    #     if fabs(color_pos_y - 94) > 20:
+    #         if color_pos_y < 94:
+    #             pointx = pose_ee[0,0] - incremental_distance
+    #         else:
+    #             pointx = pose_ee[0,0] + incremental_distance
 
-        #X-position and Y-position of point are within range of center of frame
-        if fabs(color_pos_x - 37) <= 20 and fabs(color_pos_y - 94) <= 20:
-            pointx = pose_ee[0,0]
-            pointy = pose_ee[1,0]
-            pointz = pose_ee[2,0] - 0.05
+    #     #X-position and Y-position of point are within range of center of frame
+    #     if fabs(color_pos_x - 37) <= 20 and fabs(color_pos_y - 94) <= 20:
+    #         pointz = pose_ee[2,0] - 0.05
 
 
     #Rangefinder distance is barely over object
@@ -206,8 +206,6 @@ def NewPoseUsingOpenCV(msg):
 
         #X-position and Y-position of point are within range of center of frame
         if fabs(color_pos_x - 31) <= 20 and fabs(color_pos_y - 52) <= 20:
-            pointx = pose_ee[0,0]
-            pointy = pose_ee[1,0]
             pointz = pose_ee[2,0] - 0.05
 
 
@@ -232,11 +230,7 @@ def NewPoseUsingOpenCV(msg):
 
         #X-position and Y-position of point are within range of center of frame
         if fabs(color_pos_x - 16) <= 20 and fabs(color_pos_y - 42) <= 20:
-            pointx = pose_ee[0,0]
-            pointy = pose_ee[1,0]
             pointz = pose_ee[2,0] - 0.1
-
-        print pointx,pointy
 
 
     #Rangefinder distance is too far above object to get an actual value
@@ -262,8 +256,6 @@ def NewPoseUsingOpenCV(msg):
 
         #X-position and Y-position of point are within range of center of frame
         if fabs(color_pos_x - 0) <= 50 and fabs(color_pos_y - 0) <= 50:
-            pointx = pose_ee[0,0]
-            pointy = pose_ee[1,0]
             pointz = pose_ee[2,0] - 0.15
 
 
@@ -284,13 +276,14 @@ def NewPoseUsingOpenCV(msg):
                 )
 
 
-    print "Desired position to move to", move_to_pose.pose.position
-    print "Desired orientation to move to", move_to_pose.pose.orientation
+    #print "Desired position to move to", move_to_pose.pose.position
+    # print "Desired orientation to move to", move_to_pose.pose.orientation
 
     
     #Send PoseStamped() message to Baxter's movement function
     pub.publish(move_to_pose)
 
+    rospy.sleep(2)
 
     return 
 
@@ -301,14 +294,27 @@ def main():
     rospy.init_node('target_pose_listener',anonymous = True)
 
 
-    #Publish temporary color for object detection until node for it is created
-    pub_color.publish("Red")
-
-
     #Subscribe to Baxter's left endpoint state and Visp autotracker messages
     rospy.Subscriber("/robot/limb/left/endpoint_state",EndpointState,getPoseEE)
-    rospy.Subscriber("/visp_auto_tracker/object_position",PoseStamped,getPoseTag)
     rospy.Subscriber("/opencv/center_of_object",Point,getPositionObjectfromOpenCV)
+
+  
+    pub_color.publish(color)
+
+
+    # rospy.loginfo("ENTERED THE MOVEMENT LOOP")
+
+
+    # rospy.loginfo("Getting robot state... ")
+    # rs = baxter_interface.RobotEnable(CHECK_VERSION)
+    # init_state = rs.state().enabled
+
+
+    # rospy.loginfo("Enabling robot... ") 
+    # rs.enable()
+
+    # baxterleft = baxter_interface.Gripper('left')
+    # baxterleft.calibrate()
 
 
     #Wait for left gripper's end effector pose

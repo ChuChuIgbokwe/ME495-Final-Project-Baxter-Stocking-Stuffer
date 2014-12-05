@@ -13,10 +13,18 @@ from cv_bridge import CvBridge, CvBridgeError
 
 
 #Initialize HSV thresholding values
-low_h,high_h,low_s,high_s,low_v,high_v = None
+low_h = None
+high_h = None
+low_s = None
+high_s = None
+low_v = None
+high_v = None
 
 #Create publisher to publish center of object detected
 pub = rospy.Publisher('opencv/center_of_object', Point)
+
+
+first_flag = False
 
 
 
@@ -42,7 +50,7 @@ def color_selection_hsv(message):
 
 	global low_h,high_h,low_s,high_s,low_v,high_v
 
-	if message = "red":
+	if message.data == "red":
 		low_h  = 0
 		high_h = 4
 		low_s  = 135
@@ -50,7 +58,7 @@ def color_selection_hsv(message):
 		low_v  = 60
 		high_v = 255
 
-	elif message = "green":
+	elif message.data == "green":
 		low_h  = 60
 		high_h = 90
 		low_s  = 85
@@ -58,7 +66,7 @@ def color_selection_hsv(message):
 		low_v  = 0
 		high_v = 255
 
-	elif message = "blue":
+	elif message.data == "blue":
 		low_h  = 85
 		high_h = 115
 		low_s  = 100
@@ -66,7 +74,7 @@ def color_selection_hsv(message):
 		low_v  = 50
 		high_v = 64
 
-	elif message = "yellow":
+	elif message.data == "yellow":
 		low_h  = 15
 		high_h = 70
 		low_s  = 95
@@ -74,13 +82,17 @@ def color_selection_hsv(message):
 		low_v  = 68
 		high_v = 255
 
-	elif message = "orange":
+	elif message.data == "orange":
 		low_h  = 6
 		high_h = 35
 		low_s  = 131
 		high_s = 255
 		low_v  = 0
 		high_v = 255
+
+
+	global first_flag
+	first_flag = True
 
 
 
@@ -166,9 +178,6 @@ def main():
 	cv2.namedWindow("Original", 2)
 	cv2.namedWindow("Thresholded", 3)
 
-	#Initialize threshol
-	initialize_threshold_trackbar()
-
 
 	#Initiate node for left hand camera
 	rospy.init_node('left_hand_camera', anonymous=True)
@@ -176,6 +185,14 @@ def main():
 	#Subscribe to left hand camera image 
 	rospy.Subscriber("/cameras/left_hand_camera/image", Image, callback)
 	rospy.Subscriber("/color_identifier", String, color_selection_hsv)
+
+
+	while not first_flag:
+		pass
+
+
+	#Initialize threshold trackbar
+	initialize_threshold_trackbar()
 
 
 	#Keep from exiting until this node is stopped

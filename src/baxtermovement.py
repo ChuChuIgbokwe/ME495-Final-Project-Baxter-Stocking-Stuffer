@@ -31,11 +31,9 @@ from baxter_core_msgs.msg import EndpointState
 
 
 
-
-
-
 #Accepts PoseStamped() message and moves towards it
 def BaxterMovement(new_pose):
+
     rospy.loginfo("ENTERED THE MOVEMENT LOOP")
 
 
@@ -46,6 +44,7 @@ def BaxterMovement(new_pose):
 
     rospy.loginfo("Enabling robot... ") 
     rs.enable()
+
 
     #Defining left limb for IK Service Client
     limbw = "left"
@@ -98,8 +97,9 @@ def BaxterMovement(new_pose):
 
  
     print("I'm about to sleeeeep")
-    rospy.sleep(1)
+    # rospy.sleep(2)
     print("I just woke up")
+
 
     return
 
@@ -111,9 +111,31 @@ def main():
     rospy.init_node('baxtermovement',anonymous = True)
 
 
+    rospy.loginfo("ENTERED THE MOVEMENT LOOP")
+
+
+    rospy.loginfo("Getting robot state... ")
+    rs = baxter_interface.RobotEnable(CHECK_VERSION)
+    init_state = rs.state().enabled
+
+
+    rospy.loginfo("Enabling robot... ") 
+    rs.enable()
+
+    baxterleft = baxter_interface.Gripper('left')
+    baxterleft.calibrate()
+    baxterleft.open()
+
+
+    rospy.sleep(3)
+
+
     #Subscribe to topic for PoseStamped messages to be sent to
     rospy.Subscriber("/baxter_movement/posestamped",PoseStamped,BaxterMovement)
 
+
+
+    rospy.spin()
 
 
 
