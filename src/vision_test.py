@@ -5,46 +5,27 @@ import numpy as np
 import cv2
 import baxter_interface
 
+from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Point
 
 from cv_bridge import CvBridge, CvBridgeError
 
 
+#Initialize HSV thresholding values
+low_h,high_h,low_s,high_s,low_v,high_v = None
+
+#Create publisher to publish center of object detected
 pub = rospy.Publisher('opencv/center_of_object', Point)
+
+
+
+def nothing(x):
+	pass
 
 
 #Creates trackbar for thresholding HSV image
 def initialize_threshold_trackbar():
-
-	# Initialize thresholding values
-	low_h  = 0
-	high_h = 4
-	low_s  = 135
-	high_s = 245
-	low_v  = 60
-	high_v = 255
-
-	#HSV initial thresholded values for red,orange,green,blue,yellow
-	#lower_red = np.array([0,135,0])
-	#upper_red = np.array([4,245,255])
-
-	#lower_orange = np.array([6,131,0])
-	#upper_orange = np.array([35,255,255])
-
-	#lower_green = np.array([60,85,0])
-	#upper_green = np.array([90,175,255])
-
-	#lower_blue = np.array([85,100,50])
-	#upper_blue = np.array([115,175,64])
-
-	#lower_yellow = np.array([15,95,68])
-	#upper_yellow = np.array([70,255,255])
-
-	#Creating slidable trackbars for HSV thresholding values
-	# "Do nothing" callback
-	def nothing(x):
-		pass
 
 	cv2.createTrackbar("Low H", "Control", low_h, 255, nothing)
 	cv2.createTrackbar("High H", "Control", high_h, 255, nothing)
@@ -54,6 +35,54 @@ def initialize_threshold_trackbar():
 	cv2.createTrackbar("High V", "Control", high_v, 255, nothing)
 
 	print "Initialized thresholing trackbar."
+
+
+#Selects HSV thresholding values based on color to look for
+def color_selection_hsv(message):
+
+	global low_h,high_h,low_s,high_s,low_v,high_v
+
+	if message = "red":
+		low_h  = 0
+		high_h = 4
+		low_s  = 135
+		high_s = 245
+		low_v  = 60
+		high_v = 255
+
+	elif message = "green":
+		low_h  = 60
+		high_h = 90
+		low_s  = 85
+		high_s = 175
+		low_v  = 0
+		high_v = 255
+
+	elif message = "blue":
+		low_h  = 85
+		high_h = 115
+		low_s  = 100
+		high_s = 175
+		low_v  = 50
+		high_v = 64
+
+	elif message = "yellow":
+		low_h  = 15
+		high_h = 70
+		low_s  = 95
+		high_s = 255
+		low_v  = 68
+		high_v = 255
+
+	elif message = "orange":
+		low_h  = 6
+		high_h = 35
+		low_s  = 131
+		high_s = 255
+		low_v  = 0
+		high_v = 255
+
+
 
 
 #Thresholds image and stores position of object in (x,y) coordinates of the camera's frame, with origin at center.
@@ -123,10 +152,6 @@ def callback(message):
 	# 	print "Ball off screen."
 
 
-	#Draw contour around object
-	# cv2.drawContours(thresholded,contours,-1,(255,0,0),3)
-
-
 	#Printing to screen the images
 	cv2.imshow("Original", cv_image)
 	cv2.imshow("Thresholded", thresholded)
@@ -150,7 +175,7 @@ def main():
 
 	#Subscribe to left hand camera image 
 	rospy.Subscriber("/cameras/left_hand_camera/image", Image, callback)
-	#rospy.Subscriber("/camera_node/image_raw", Image, callback)
+	rospy.Subscriber("/color_identifier", String, color_selection_hsv)
 
 
 	#Keep from exiting until this node is stopped
