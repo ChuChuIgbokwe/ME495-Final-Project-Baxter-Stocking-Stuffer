@@ -19,7 +19,8 @@ from geometry_msgs.msg import (
 from std_msgs.msg import (
     String,
     Header,
-    Bool
+    Bool,
+    Uint8
 )
 
 from baxter_core_msgs.srv import (
@@ -29,16 +30,11 @@ from baxter_core_msgs.srv import (
 
 
 from baxter_interface import CHECK_VERSION
-
 from baxter_core_msgs.msg import EndpointState
-
-
-
 
 #Setting flags to False
 first_flag = False #position of end-effector
 second_flag = False #QR pose
-
 
 
 #Initialization of global variables
@@ -50,14 +46,11 @@ previous_tag = np.zeros((1,3))
 
 movement = 0 #QR code movement (0,1,2)
 
-
+tag_id = int()
 
 #Create publisher to send PoseStamped() message to topic for Baxter to move towards
-pub_cd = rospy.Publisher('run_color_detection', Bool)
+pub_cd = rospy.Publisher('start/colordetection', Bool)
 pub_stocking_pose = rospy.Publisher('stocking_pose',PoseStamped)
-
-
-
 
 #Gets pose of end-effector from Baxter
 def getPoseEE(msg):
@@ -82,9 +75,6 @@ def getPoseEE(msg):
 
     return
 
-
-
-
 #Gets the pose of tag from QR code
 def getPoseTag(msg):
 
@@ -95,9 +85,6 @@ def getPoseTag(msg):
     second_flag = True
 
     return
-
-
-
 
 #Create PoseStamped() message to move Baxter towards QR code
 def NewPoseUsingQRcode(msg):
@@ -197,17 +184,23 @@ def NewPoseUsingQRcode(msg):
 
     return 
 
+def get_tag_id(msg):
+    global get_tag_id
+    tag_id = msg.data
 
-
+def sweep_val(msg):
+    global run
+    run = msg.data
 
 
 def main():
     rospy.init_node('create_pose_using_qr_code',anonymous = True)
 
-
     #Subscribe to Baxter's left end-effector state and Visp autotracker messages
     rospy.Subscriber("/robot/limb/left/endpoint_state",EndpointState,getPoseEE)
     rospy.Subscriber("/visp_auto_tracker/object_position",PoseStamped,getPoseTag)
+    rospy.Subscriber("/sweep",Bool,sweep_val)
+    rospy.Subscriber("/scanned_stocking_id",Int8,get_tag_id)
 
     #Wait for left gripper's end effector pose
     while not first_flag:
