@@ -21,7 +21,8 @@ from std_msgs.msg import (
     String,
     UInt8,
     Float64,
-    Bool
+    Bool,
+    Int8
 )
 
 from baxter_core_msgs.srv import (
@@ -45,7 +46,7 @@ from ar_track_alvar_msgs.msg import AlvarMarkers,AlvarMarker
 
 
 pub_color = rospy.Publisher('color_identifier',String)
-pub_pose = rospy.Publisher('scanned_stocking_pose',PoseStamped)
+pub_id = rospy.Publisher('scanned_stocking_id',Int8)
 pub_sweep = rospy.Publisher('sweep',Bool)
 
 m = None
@@ -59,12 +60,15 @@ def identify_pres(msg):
     global sweep
     global completed_list
     sweep = True
-
+    # print "run: ", run
     if run == True:
         for m in msg.markers:
             identity = m.id
             home = m.pose
+            sent_identity = int(identity)
+            # print type(sent_identity)
             # print "Finding the associated present"
+            # print "identity found", identity
             while identity not in completed_list:
                 if identity==1:
                     color = "red"
@@ -72,27 +76,30 @@ def identify_pres(msg):
                     completed_list.append(identity)
                     sweep = False
                     pub_color.publish(color)
+                    pub_id.publish(sent_identity)
                 elif identity==2:
                     color = "blue"
                     print "Identified as person 2"
                     completed_list.append(identity)
                     sweep = False
                     pub_color.publish(color)
+                    pub_id.publish(sent_identity)
                 elif identity==3:
                     color = "green"
                     print "Identified as person 3"
                     completed_list.append(identity)
                     sweep = False
                     pub_color.publish(color)
+                    pub_id.publish(sent_identity)
                 elif identity==4:
                     color = "yellow"
                     print "Identified as person 4"
                     completed_list.append(identity)
                     sweep = False
                     pub_color.publish(color)
+                    pub_id.publish(sent_identity)
                 # else:
                 #     print "Person not identified- will search again"
-
             pub_sweep.publish(sweep)
     return completed_list
         
