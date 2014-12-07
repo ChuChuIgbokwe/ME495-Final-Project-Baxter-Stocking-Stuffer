@@ -16,7 +16,7 @@ from geometry_msgs.msg import (
     Point,
     Quaternion,
 )
-from std_msgs.msg import String,Header
+from std_msgs.msg import String,Header,Bool
 
 from baxter_core_msgs.srv import (
     SolvePositionIK,
@@ -29,7 +29,8 @@ from baxter_interface import CHECK_VERSION
 from baxter_core_msgs.msg import EndpointState
 
 
-#Create publisher to publish center of object detected
+
+#Create publisher to publish center of object detected - temporarily
 pub_color = rospy.Publisher('color_identifier', String, queue_size=10, latch=True)
 color = "red"
 
@@ -40,13 +41,29 @@ second_flag = False #opencv position
 
 
 #Initialization of global variables
+StateColorDetection = False
+
 pose_ee = np.full((7,1), None)
 
 position_object_opencv = Point()
 
 
+
 #Create publisher to send PoseStamped() message to topic for Baxter to move towards
-pub = rospy.Publisher('baxter_movement/posestamped', PoseStamped)
+pub_baxtermovement = rospy.Publisher('baxter_movement/posestamped', PoseStamped)
+
+pub_state_opencv = rospy.Publisher('start/colordetection', Bool)
+pub_state_backtostocking = rospy.Publisher('start/backtostocking', Bool)
+
+
+
+
+#Obtain T/F state of whether to move towards specified color
+def getStateColorDetection(msg):
+
+    global StateColorDetection
+
+    StateColorDetection = msg.data
 
 
 
@@ -94,194 +111,195 @@ def getPositionObjectfromOpenCV(msg):
 #Creates PoseStamped() message to move appropriately towards object, based on distance away
 def NewPoseUsingOpenCV(msg):
  
-    
-    #Wait for position of object from OpenCV node
-    while not second_flag:
-        pass
-    
-
-    #Store position of object from OpenCV into local variables
-    position_OpenCV = msg
-
-    color_pos_x = position_OpenCV.x
-    color_pos_y = position_OpenCV.y
+    #Only obtain a new pose if asked to
+    if StateColorDetection == "True":
 
 
-    #Get distance from rangefinder
-    rangefinder_dist = baxter_interface.analog_io.AnalogIO('left_hand_range').state()
+        #Wait for position of object from OpenCV node
+        while not second_flag:
+            pass
+        
 
-    rospy.loginfo("OpenCV Point Position: [ %f, %f, %f ]"%(position_OpenCV.x, position_OpenCV.y, position_OpenCV.z))
-    rospy.loginfo("Rangefinder Distance: [ %f]"%(rangefinder_dist))
+        #Store position of object from OpenCV into local variables
+        position_OpenCV = msg
 
-
-    #Initialize PoseStamped() message as position of end-effector, with grippers pointed downwards
-    pointx = pose_ee[0,0]
-    pointy = pose_ee[1,0]
-    pointz = pose_ee[2,0]
-    quatx = 0
-    quaty = 1
-    quatz = 0
-    quatw = 0
+        color_pos_x = position_OpenCV.x
+        color_pos_y = position_OpenCV.y
 
 
+        #Get distance from rangefinder
+        rangefinder_dist = baxter_interface.analog_io.AnalogIO('left_hand_range').state()
 
-    #Rangefinder distance is directly over object
-    if rangefinder_dist < 100:
-
-        #Close Baxter's left gripper
-        baxterleft = baxter_interface.Gripper('left')
-        baxterleft.close()
-
-        rospy.sleep(0.5)
-
-        pointz = pose_ee[2,0] + 0.3
+        rospy.loginfo("OpenCV Point Position: [ %f, %f, %f ]"%(position_OpenCV.x, position_OpenCV.y, position_OpenCV.z))
+        rospy.loginfo("Rangefinder Distance: [ %f]"%(rangefinder_dist))
 
 
-    #Rangefinder distance is over object
-    if rangefinder_dist < 150:
-
-        incremental_distance = 0.0025
-
-        #X-position of point not within range of center of frame
-        if fabs(color_pos_x - 37) > 20:
-            if color_pos_x < 37:
-                pointy = pose_ee[1,0] + incremental_distance
-            else:
-                pointy = pose_ee[1,0] - incremental_distance
-
-        #Y-position of point not within range of center of frame
-        if fabs(color_pos_y - 94) > 20:
-            if color_pos_y < 94:
-                pointx = pose_ee[0,0] - incremental_distance
-            else:
-                pointx = pose_ee[0,0] + incremental_distance
-
-        #X-position and Y-position of point are within range of center of frame
-        if fabs(color_pos_x - 37) <= 20 and fabs(color_pos_y - 94) <= 20:
-            pointz = pose_ee[2,0] - 0.05
+        #Initialize PoseStamped() message as position of end-effector, with grippers pointed downwards
+        pointx = pose_ee[0,0]
+        pointy = pose_ee[1,0]
+        pointz = pose_ee[2,0]
+        quatx = 0
+        quaty = 1
+        quatz = 0
+        quatw = 0
 
 
-    # #Rangefinder distance is nearly over object
-    # elif rangefinder_dist < 200:
-    
-    #     incremental_distance = 0.005
 
-    #     #X-position of point not within range of center of frame
-    #     if fabs(color_pos_x - 37) > 20:
-    #         if color_pos_x < 37:
-    #             pointy = pose_ee[1,0] + incremental_distance
-    #         else:
-    #             pointy = pose_ee[1,0] - incremental_distance
+        #Rangefinder distance is directly over object
+        if rangefinder_dist < 100:
 
-    #     #Y-position of point not within range of center of frame
-    #     if fabs(color_pos_y - 94) > 20:
-    #         if color_pos_y < 94:
-    #             pointx = pose_ee[0,0] - incremental_distance
-    #         else:
-    #             pointx = pose_ee[0,0] + incremental_distance
+            #Close Baxter's left gripper
+            baxterleft = baxter_interface.Gripper('left')
+            baxterleft.close()
 
-    #     #X-position and Y-position of point are within range of center of frame
-    #     if fabs(color_pos_x - 37) <= 20 and fabs(color_pos_y - 94) <= 20:
-    #         pointz = pose_ee[2,0] - 0.05
+            rospy.sleep(0.5)
+
+            #Turn movement off, and go to next segment (Move back to stocking)
+            pub_state_opencv.publish("False")
+            pub_state_backtostocking.publish("True")
 
 
-    #Rangefinder distance is barely over object
-    elif rangefinder_dist < 250:
- 
-        incremental_distance = 0.01
+        #Rangefinder distance is over object
+        if rangefinder_dist < 150:
 
-        #X-position of point not within range of center of frame
-        if fabs(color_pos_x - 31) > 20:
-            if color_pos_x < 31:
-                pointy = pose_ee[1,0] + incremental_distance
-            else:
-                pointy = pose_ee[1,0] - incremental_distance
+            incremental_distance = 0.0025
 
-        #Y-position of point not within range of center of frame
-        if fabs(color_pos_y - 52) > 20:
-            if color_pos_y < 52:
-                pointx = pose_ee[0,0] - incremental_distance
-            else:
-                pointx = pose_ee[0,0] + incremental_distance
+            #X-position of point not within range of center of frame
+            if fabs(color_pos_x - 37) > 20:
+                if color_pos_x < 37:
+                    pointy = pose_ee[1,0] + incremental_distance
+                else:
+                    pointy = pose_ee[1,0] - incremental_distance
 
-        #X-position and Y-position of point are within range of center of frame
-        if fabs(color_pos_x - 31) <= 20 and fabs(color_pos_y - 52) <= 20:
-            pointz = pose_ee[2,0] - 0.05
+            #Y-position of point not within range of center of frame
+            if fabs(color_pos_y - 94) > 20:
+                if color_pos_y < 94:
+                    pointx = pose_ee[0,0] - incremental_distance
+                else:
+                    pointx = pose_ee[0,0] + incremental_distance
+
+            #X-position and Y-position of point are within range of center of frame
+            if fabs(color_pos_x - 37) <= 20 and fabs(color_pos_y - 94) <= 20:
+                pointz = pose_ee[2,0] - 0.05
 
 
-    #Rangefinder distance is over object
-    elif rangefinder_dist < 350:
- 
-        incremental_distance = 0.015
+        # #Rangefinder distance is nearly over object
+        # elif rangefinder_dist < 200:
+        
+        #     incremental_distance = 0.005
 
-        #X-position of point not within range of center of frame
-        if fabs(color_pos_x - 16) > 20:
-            if color_pos_x < 16:
-                pointy = pose_ee[1,0] + incremental_distance
-            else:
-                pointy = pose_ee[1,0] - incremental_distance
+        #     #X-position of point not within range of center of frame
+        #     if fabs(color_pos_x - 37) > 20:
+        #         if color_pos_x < 37:
+        #             pointy = pose_ee[1,0] + incremental_distance
+        #         else:
+        #             pointy = pose_ee[1,0] - incremental_distance
 
-        #Y-position of point not within range of center of frame
-        if fabs(color_pos_y - 42) > 20:
-            if color_pos_y < 42:
-                pointx = pose_ee[0,0] - incremental_distance
-            else:
-                pointx = pose_ee[0,0] + incremental_distance
+        #     #Y-position of point not within range of center of frame
+        #     if fabs(color_pos_y - 94) > 20:
+        #         if color_pos_y < 94:
+        #             pointx = pose_ee[0,0] - incremental_distance
+        #         else:
+        #             pointx = pose_ee[0,0] + incremental_distance
 
-        #X-position and Y-position of point are within range of center of frame
-        if fabs(color_pos_x - 16) <= 20 and fabs(color_pos_y - 42) <= 20:
+        #     #X-position and Y-position of point are within range of center of frame
+        #     if fabs(color_pos_x - 37) <= 20 and fabs(color_pos_y - 94) <= 20:
+        #         pointz = pose_ee[2,0] - 0.05
+
+
+        #Rangefinder distance is barely over object
+        elif rangefinder_dist < 250:
+     
+            incremental_distance = 0.01
+
+            #X-position of point not within range of center of frame
+            if fabs(color_pos_x - 31) > 20:
+                if color_pos_x < 31:
+                    pointy = pose_ee[1,0] + incremental_distance
+                else:
+                    pointy = pose_ee[1,0] - incremental_distance
+
+            #Y-position of point not within range of center of frame
+            if fabs(color_pos_y - 52) > 20:
+                if color_pos_y < 52:
+                    pointx = pose_ee[0,0] - incremental_distance
+                else:
+                    pointx = pose_ee[0,0] + incremental_distance
+
+            #X-position and Y-position of point are within range of center of frame
+            if fabs(color_pos_x - 31) <= 20 and fabs(color_pos_y - 52) <= 20:
+                pointz = pose_ee[2,0] - 0.05
+
+
+        #Rangefinder distance is over object
+        elif rangefinder_dist < 350:
+     
+            incremental_distance = 0.015
+
+            #X-position of point not within range of center of frame
+            if fabs(color_pos_x - 16) > 20:
+                if color_pos_x < 16:
+                    pointy = pose_ee[1,0] + incremental_distance
+                else:
+                    pointy = pose_ee[1,0] - incremental_distance
+
+            #Y-position of point not within range of center of frame
+            if fabs(color_pos_y - 42) > 20:
+                if color_pos_y < 42:
+                    pointx = pose_ee[0,0] - incremental_distance
+                else:
+                    pointx = pose_ee[0,0] + incremental_distance
+
+            #X-position and Y-position of point are within range of center of frame
+            if fabs(color_pos_x - 16) <= 20 and fabs(color_pos_y - 42) <= 20:
+                pointz = pose_ee[2,0] - 0.1
+
+
+        #Rangefinder distance is too far above object to get an actual value
+        else:
+            
+            incremental_distance = 0.02
+
+            #X-position of point not within range of center of frame
+            if fabs(color_pos_x - 0) > 50:
+                if color_pos_x < 0:
+                    pointy = pose_ee[1,0] + incremental_distance
+                else:
+                    pointy = pose_ee[1,0] - incremental_distance
+
+            #Y-position of point not within range of center of frame
+            if fabs(color_pos_y - 0) > 50:
+                if color_pos_y < 0:
+                    pointx = pose_ee[0,0] - incremental_distance
+                else:
+                    pointx = pose_ee[0,0] + incremental_distance
+
             pointz = pose_ee[2,0] - 0.1
 
+            #X-position and Y-position of point are within range of center of frame
+            if fabs(color_pos_x - 0) <= 50 and fabs(color_pos_y - 0) <= 50:
+                pointz = pose_ee[2,0] - 0.15
 
-    #Rangefinder distance is too far above object to get an actual value
-    else:
+
+
+        #Combine position and orientation in a PoseStamped() message
+        move_to_pose = PoseStamped()
+        move_to_pose.header=Header(stamp=rospy.Time.now(), frame_id='base')
+        move_to_pose.pose.position=Point(
+                        x=pointx,
+                        y=pointy,
+                        z=pointz,
+                    )
+        move_to_pose.pose.orientation=Quaternion(
+                        x=quatx,
+                        y=quaty,
+                        z=quatz,
+                        w=quatw,
+                    )
         
-        incremental_distance = 0.02
+        #Send PoseStamped() message to Baxter's movement function
+        pub_baxtermovement.publish(move_to_pose)
 
-        #X-position of point not within range of center of frame
-        if fabs(color_pos_x - 0) > 50:
-            if color_pos_x < 0:
-                pointy = pose_ee[1,0] + incremental_distance
-            else:
-                pointy = pose_ee[1,0] - incremental_distance
-
-        #Y-position of point not within range of center of frame
-        if fabs(color_pos_y - 0) > 50:
-            if color_pos_y < 0:
-                pointx = pose_ee[0,0] - incremental_distance
-            else:
-                pointx = pose_ee[0,0] + incremental_distance
-
-        pointz = pose_ee[2,0] - 0.1
-
-        #X-position and Y-position of point are within range of center of frame
-        if fabs(color_pos_x - 0) <= 50 and fabs(color_pos_y - 0) <= 50:
-            pointz = pose_ee[2,0] - 0.15
-
-
-
-    #Combine position and orientation in a PoseStamped() message
-    move_to_pose = PoseStamped()
-    move_to_pose.header=Header(stamp=rospy.Time.now(), frame_id='base')
-    move_to_pose.pose.position=Point(
-                    x=pointx,
-                    y=pointy,
-                    z=pointz,
-                )
-    move_to_pose.pose.orientation=Quaternion(
-                    x=quatx,
-                    y=quaty,
-                    z=quatz,
-                    w=quatw,
-                )
-
-
-    #print "Desired position to move to", move_to_pose.pose.position
-    # print "Desired orientation to move to", move_to_pose.pose.orientation
-
-    
-    #Send PoseStamped() message to Baxter's movement function
-    pub.publish(move_to_pose)
 
     rospy.sleep(2)
 
@@ -291,30 +309,17 @@ def NewPoseUsingOpenCV(msg):
 
 
 def main():
-    rospy.init_node('target_pose_listener',anonymous = True)
+    rospy.init_node('create_pose_using_color_detection',anonymous = True)
 
 
-    #Subscribe to Baxter's left endpoint state and Visp autotracker messages
+    #Subscribe to Baxter's left endpoint state, position of object, and T/F state of color detection
     rospy.Subscriber("/robot/limb/left/endpoint_state",EndpointState,getPoseEE)
     rospy.Subscriber("/opencv/center_of_object",Point,getPositionObjectfromOpenCV)
+    rospy.Subscriber("/start/colordetection",Bool,getStateColorDetection)
 
   
+    #Temporarily publish the color of object to look for
     pub_color.publish(color)
-
-
-    # rospy.loginfo("ENTERED THE MOVEMENT LOOP")
-
-
-    # rospy.loginfo("Getting robot state... ")
-    # rs = baxter_interface.RobotEnable(CHECK_VERSION)
-    # init_state = rs.state().enabled
-
-
-    # rospy.loginfo("Enabling robot... ") 
-    # rs.enable()
-
-    # baxterleft = baxter_interface.Gripper('left')
-    # baxterleft.calibrate()
 
 
     #Wait for left gripper's end effector pose
@@ -322,7 +327,7 @@ def main():
         pass
 
 
-    #Continously running to send PoseStamped() message to Baxter
+    #Continously running to send PoseStamped() message to Baxter, based on current distance away from object
     while not rospy.is_shutdown():
         NewPoseUsingOpenCV(position_object_opencv)
 
