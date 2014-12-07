@@ -257,18 +257,20 @@ def BaxterMovement(new_pose):
     return
 
 
+def whichid(msg):
+    )
 
 
 
-def target_pose_listener():
-    rospy.init_node('target_pose_listener',anonymous = True)
+def target_poseid_listener():
+    rospy.init_node('target_poseid_listener',anonymous = True)
 
 
 
     #Subscribe to Baxter's left endpoint state and Visp autotracker messages
     rospy.Subscriber("/robot/limb/left/endpoint_state",EndpointState,getposeEE)
     rospy.Subscriber("/visp_auto_tracker/object_position",PoseStamped,getposetag)
-    rospy.Subscriber("/needed_present_identifier/scanned_stocking_id",PoseStamped,getposetag)
+    rospy.Subscriber("/needed_present_identifier/scanned_stocking_id",uint8,whichid)
 
     #Calibrate left gripper
     baxterleft = baxter_interface.Gripper('left')

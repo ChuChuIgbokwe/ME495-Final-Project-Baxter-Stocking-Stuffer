@@ -36,6 +36,7 @@ from ar_track_alvar_msgs.msg import AlvarMarkers,AlvarMarker
 pub_color = rospy.Publisher('color_identifier',String)
 pub_pose = rospy.Publisher('scanned_stocking_pose',PoseStamped)
 
+
 def baxter_sweep_stocking(msg):
 
 	)
