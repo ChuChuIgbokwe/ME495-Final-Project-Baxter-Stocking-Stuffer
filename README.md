@@ -18,17 +18,17 @@ Group: Sabeen Admani, Chukwunyere Igbokwe, Josh Marino, and Andrew Turchina
 
 <a name="Objective"></a> 
 ###Objective
-The goal of this project is to get Baxter to stuff stockings that are hung on a wall with presents that are scattered across a table. He will identify a stocking, locate the corresponding present, and then place the present in the stocking.
+The goal of this project is to get a [Baxter Robot](http://www.rethinkrobotics.com/baxter/) to act as Santa's [elf](http://en.wikipedia.org/wiki/Christmas_elf) helper.  Baxter will have a set of presents and a set of stockings in his workspace.  Baxter will identify a stocking, locate the corresponding present, and then place the present in the stocking.
 
 
 <a name="Equipment and Hardware Requirements"></a>
 ###Equipment and Hardware Requirements
-1. Baxter  
+1. Baxter Robot  
 2. [ROS Indigo](http://wiki.ros.org/ROS/Installation) on Ubuntu 14.04  
-3. Asus Xtion Pro Camera  
-4. 4 Stockings  
+3. [Asus Xtion Pro Camera](http://www.asus.com/Multimedia/Xtion_PRO/)  
+4. [4 Stockings](http://www.amazon.com/Plush-Christmas-Stocking-White-Trim/dp/B001L11PQ0/ref=sr_1_9?ie=UTF8&qid=1416682045&sr=8-9&keywords=christmas+stockings)  
 5. 4 Presents of different colors  
-6. 4 AR tags  
+6. [4 AR tags](http://wiki.ros.org/ar_track_alvar?action=AttachFile&do=view&target=markers0to8.png)  
 7. Table to place presents  
 8. Wall and hangers to place stockings  
 
@@ -37,7 +37,9 @@ The goal of this project is to get Baxter to stuff stockings that are hung on a 
 #####Setup Baxter  
 Rethink Robotics has [Baxter Setup](http://sdk.rethinkrobotics.com/wiki/Baxter_Setup) instructions and [Workstation Setup](http://sdk.rethinkrobotics.com/wiki/Workstation_Setup) instructions.   
 #####Setup demo area
-There needs to be a table and presents within Baxter's reachable workspace
+There needs to be a table and presents within Baxter's reachable workspace  
+![Baxter Workspace](https://raw.githubusercontent.com/ChuChuIgbokwe/ME495-Final-Project-Baxter-Stocking-Stuffer/master/baxter_workspace_placeholder.jpeg)  
+
 
 <a name="Project Overview"></a>
 ###Project Overview 
@@ -69,11 +71,14 @@ Below is what the launch file looks like:
 <a name="Dependencies"></a>
 ###Dependencies 
 - `ar_track`
+- `visp_auto_tracker`
+- ` `
+- ` `
 
 <a name="Package Installation"></a>
 ###Package Installation 
 The following packages need to be installed
-- `ar_track_alvar $ sudo apt-get install
+- `ar_track_alvar $ sudo apt-get install`
 
 <a name="Future Improvements"></a>
 ###Future Improvements 
