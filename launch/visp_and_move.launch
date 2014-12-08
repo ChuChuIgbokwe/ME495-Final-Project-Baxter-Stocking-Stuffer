@@ -1,5 +1,9 @@
 <launch>
 
+  <!-- Include launch file that starts AR tracker and identifies stocking -->
+  <include file="$(find baxter_stocking_stuffer)/launch/ar_trackv2.launch"/>
+
+
   <!-- Node to open Baxter's left hand camera, after closing them all -->
   <node pkg="baxter_tools" type="camera_control.py" name="close_left_camera" output="screen"  args="-c left_hand_camera">
   </node>
@@ -23,24 +27,26 @@
   </node>
 
 
-<!-- Node to move baxter close to an object (either QR or vision tracking) -->
-<!--   <node pkg="baxter_stocking_stuffer" type="movement_visp_and_opencv.py" name="movement_node" output="screen" >
-  </node> --> -->
-
   <!-- Node that accepts a PoseStamped() message and moves toward it, if a solution is possible. -->
   <node pkg="baxter_stocking_stuffer" type="baxtermovement.py" name="movement_node" output="screen" >
   </node>
 
+  <!-- Once stocking has been identified, determines the pose of the stocking using QR code -->
+  <node pkg="baxter_stocking_stuffer" type="poseusingidandqrcode.py" name="stocking_pose" output="screen" >
+  </node> -->
+
   <!-- Node to publish center of object after thresholded with OpenCV -->
-  <node pkg="baxter_stocking_stuffer" type="vision_test.py" name="vision_node" output="screen" >
+  <node pkg="baxter_stocking_stuffer" type="open_cv_vision.py" name="vision_node" output="screen" >
   </node>
 
-  <!-- Node listening to Visp autotracker, and when a qr code is read, publishes a PoseStamped() message to move towards-->
-  <node pkg="baxter_stocking_stuffer" type="poseusingqrcode.py" name="visp_node" output="screen" >
-  </node>
-
-  <!-- Node listening to vision_test that publishes PoseStamped() message for Baxter's gripper to get within grapsing reach -->
+  <!-- Node listening to center of object that publishes PoseStamped() message for Baxter's gripper to get within grapsing reach -->
   <node pkg="baxter_stocking_stuffer" type="poseusingcolordetection.py" name="color_node" output="screen" >
   </node>
+
+
+  <!-- Node that moves Baxter's gripper and held present back to stocking, then releases into stocking -->
+  <node pkg="baxter_stocking_stuffer" type="back_to_stocking_and_release.py" name="returns_present" output="screen" >
+  </node>
+
 
 </launch>

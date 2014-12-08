@@ -30,11 +30,6 @@ from baxter_core_msgs.msg import EndpointState
 
 
 
-#Create publisher to publish center of object detected
-pub_color = rospy.Publisher('color_identifier', String, queue_size=10, latch=True)
-color = "red"
-
-
 #Setting flags to False
 first_flag = False #position of stocking
 second_flag = False #T/F for whether to move back to stocking
@@ -43,7 +38,7 @@ third_flag = False #T/F for whether to release present
 
 #Initialization of global variables
 StateBacktoStocking = False
-StateDropPresent = False
+StateReleasePresent = False
 
 pose_stocking = np.full((7,1), None)
 
@@ -56,29 +51,40 @@ pub_state_backtostocking = rospy.Publisher('start/backtostocking', Bool)
 
 pub_state_releasepresent = rospy.Publisher('start/releasepresent', Bool)
 
-pub_state_sweepstocking = rospy.Publisher('sweep', Bool)
+pub_state_sweepstocking = rospy.Publisher('/start/sweep', Bool)
+
+
+
+pub_stockingpose = rospy.Publisher('pose/stocking', PoseStamped)
+
 
 
 
 #Obtain T/F state of whether to move back to stocking
 def getStateBackToStocking(msg):
 
-    global StateBacktoStocking
+    global StateBacktoStocking, second_flag
 
     StateBacktoStocking = msg.data
 
     second_flag = True
+
+    return
 
 
 
 #Obtain T/F state of whether to release present
 def getStateReleasePresent(msg):
 
-    global StateRealeasePresent
+    global StateReleasePresent, third_flag
 
-    StateRealeasePresent = msg.data
+    StateReleasePresent = msg.data
 
     third_flag = True
+
+    print "StateReleasePresent:",third_flag
+
+    return
 
 
 
@@ -107,16 +113,19 @@ def getPoseStocking(msg):
 
 
 
-
 #Creates PoseStamped() message to move back to stocking
 def NewPoseBacktoStocking(msg):
+
 
     #Wait for T/F state of whether to move back to stocking
     while not second_flag:
         pass
- 
+
+
     #Only obtain a new pose if asked to
-    if StateBacktoStocking == "True":
+    if StateBacktoStocking == True:
+
+        print "Start of loop"
 
         #Stores pose of the stocking in a local variable
         pose_stocking = msg
@@ -137,16 +146,23 @@ def NewPoseBacktoStocking(msg):
                         w=pose_stocking[6,0],
                     )
         
+
+        print "Moving back to stocking to release present, with pose:"
+        print move_to_pose
+
         #Send PoseStamped() message to Baxter's movement function
         pub_baxtermovement.publish(move_to_pose)
 
+
         #Turn state of back to stocking to False and state of release present to True
-        pub_state_backtostocking.publish("False")
+        pub_state_backtostocking.publish(False)
 
-        pub_state_releasepresent.publish("True")
+        rospy.sleep(6)
 
+        print "Should be at location to drop present."
 
-        rospy.sleep(2)
+        pub_state_releasepresent.publish(True)
+
 
 
     return 
@@ -161,25 +177,61 @@ def ReleasePresent():
         pass
  
     #Only release present if asked to
-    if StateDropPresent == "True":
+    if StateReleasePresent == True:
+
+            print "Releasing present in stocking."
 
             #Open Baxter's left gripper
             baxterleft = baxter_interface.Gripper('left')
+            rospy.sleep(1)
             baxterleft.open()
 
             #Wait for gripper to open
-            rospy.sleep(1)
+            # rospy.sleep(2)
+
+            print "Present dropped in stocking."
 
             #Once released, turn state to F, and change T/F state of sweep to T
-            pub_state_releasepresent.publish("False")
+            pub_state_releasepresent.publish(False)
 
-            pub_state_sweepstocking.publish("True")
+            rospy.sleep(4)
+
+            #Move to a position where can see all stockings
+            MovetoScanStockingRange()
+
+            pub_state_sweepstocking.publish(True)
 
 
     return
 
 
+#Move to a position where can see all stockings
+def MovetoScanStockingRange():
 
+    #Combine position and orientation in a PoseStamped() message
+    move_to_pose = PoseStamped()
+    move_to_pose.header=Header(stamp=rospy.Time.now(), frame_id='base')
+    move_to_pose.pose.position=Point(
+                    x=0.8,
+                    y=0.3,
+                    z=0.3,
+                )
+    move_to_pose.pose.orientation=Quaternion(
+                    x=0,
+                    y=math.sqrt(2)/2,
+                    z=0,
+                    w=math.sqrt(2)/2,
+                )
+    
+    #Send PoseStamped() message to Baxter's movement function
+    pub_baxtermovement.publish(move_to_pose)
+
+    rospy.sleep(10)
+
+    global first_flag
+    first_flag = True
+
+    return
 
 
 
