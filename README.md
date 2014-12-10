@@ -86,16 +86,24 @@ The following packages need to be installed
 
 <a name="Other Scripts"></a>
 ###Other Scripts 
+These nodes run in a certain sequence of steps. The way this is accomplished is by having each of these nodes listen to certain topics that contain boolean messages of true and false. Published messages of true to certain topics begin specific actions and the opposite is true for the false messages published.
 
 - `needed_present_identifier.py` 
 
-This node begins the stocking stuffing sequence.
+Overall function: This node kicks off the stocking stuffing sequence. In addition, it is needed to identify whose present Baxter needs to search for on the table as well as to find the "home position" of the stocking that he will need to return to in order to drop the present off later. 
 
-Overall function: To identify whose present Baxter needs to search for on the table as well as to find the "home position" of the stocking that he will need to return to in order to drop the present off later. 
+Published topics:
 
-Publishers:
+color identifier
+scanned stocking id
+start sweep; starts off as true and changes to false at the end once stocking id is identified
+start stockingpose; published to true
+baxter movement stamped
 
 Subscribers:
+ar pose marker
+start/sweep
+visp auto tracker
 
 - `baxtermovement.py`
 
