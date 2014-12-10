@@ -86,24 +86,58 @@ The following packages need to be installed
 
 <a name="Other Scripts"></a>
 ###Other Scripts 
-- `baxter_grip.py` controls the position of Baxter's gripper   
 
-- `iknodebean.py` provides a   
+- `needed_present_identifier.py` 
 
-- `iknodebean_test.py` was used as   
+This node begins the stocking stuffing sequence.
 
-- `movement_visp.py`   
+Overall function: To identify whose present Baxter needs to search for on the table as well as to find the "home position" of the stocking that he will need to return to in order to drop the present off later. 
 
-- `movement_visp_and_opencv.py`   
+Publishers:
 
-- `needed_present_identifier.py` listens to the color/tag node and selects the object needed  
+Subscribers:
 
-- `sweep_stocking.py` commands Baxter to look at the stockings and store the stocking locations and corresponding presents  
+- `baxtermovement.py`
 
-- `sweep_table.py` commands Baxter to look at the table with presents and store the present locations   
+Overall function:
 
-- `vision_test.py`   
+Publishers:
 
+Subscribers:
+
+ 
+- `open_cv_vision.py`
+
+Overall function:
+
+Publishers:
+
+Subscribers:
+
+
+- `poseusingcolordetection.py`
+
+Overall function:
+
+Publishers:
+
+Subscribers:
+
+- `back_to_stocking_and_release.py`
+
+Overall function:
+
+Publishers:
+
+Subscribers:
+
+- `poseusingidandqrcode.py`
+
+Overall function:
+
+Publishers:
+
+Subscribers:
 
 <a name="Conclusions"></a>
 ###Conclusions 
