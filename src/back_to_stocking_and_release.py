@@ -60,6 +60,13 @@ pub_stockingpose = rospy.Publisher('pose/stocking', PoseStamped)
 
 
 
+pointx = None
+pointy = None
+pointz = None
+
+
+
+
 #Obtain T/F state of whether to move back to stocking
 def getStateBackToStocking(msg):
 
@@ -125,19 +132,43 @@ def NewPoseBacktoStocking(msg):
     #Only obtain a new pose if asked to
     if StateBacktoStocking == True:
 
-        print "Start of loop"
-
         #Stores pose of the stocking in a local variable
         pose_stocking = msg
+
+
+
+        print "Pose of Stocking:",pose_stocking
+
+        pointx = pose_stocking[0,0]
+        pointy = pose_stocking[1,0]
+        pointz = pose_stocking[2,0]
+
+
+        if fabs(pose_stocking[0,0]-(-0.55))<0.1:
+            pointx = -0.55
+            pointy = 1.06
+            pointz = 0.35
+        elif fabs(pose_stocking[0,0]-(-0.55+1*0.23))<0.1:
+            pointx = -0.55+1*0.23
+            pointy = 1.06
+            pointz = 0.35
+        elif fabs(pose_stocking[0,0]-(-0.55+2*0.23))<0.1:
+            pointx = -0.55+2*0.23
+            pointy = 1.06
+            pointz = 0.35
+        elif fabs(pose_stocking[0,0]-(-0.55+3*0.23))<0.1:
+            pointx = -0.55+3*0.23
+            pointy = 1.06
+            pointz = 0.35
 
 
         #Combine position and orientation in a PoseStamped() message
         move_to_pose = PoseStamped()
         move_to_pose.header=Header(stamp=rospy.Time.now(), frame_id='base')
         move_to_pose.pose.position=Point(
-                        x=pose_stocking[0,0],
-                        y=pose_stocking[1,0],
-                        z=pose_stocking[2,0],
+                        x=pointx,
+                        y=pointy,
+                        z=pointz,
                     )
         move_to_pose.pose.orientation=Quaternion(
                         x=pose_stocking[3,0],
@@ -157,7 +188,7 @@ def NewPoseBacktoStocking(msg):
         #Turn state of back to stocking to False and state of release present to True
         pub_state_backtostocking.publish(False)
 
-        rospy.sleep(6)
+        rospy.sleep(15)
 
         print "Should be at location to drop present."
 
@@ -197,7 +228,7 @@ def ReleasePresent():
             rospy.sleep(4)
 
             #Move to a position where can see all stockings
-            MovetoScanStockingRange()
+            #MovetoScanStockingRange()
 
             pub_state_sweepstocking.publish(True)
 
@@ -208,19 +239,19 @@ def ReleasePresent():
 #Move to a position where can see all stockings
 def MovetoScanStockingRange():
 
-    #Combine position and orientation in a PoseStamped() message
+    #Send Baxter back to starting point to find next stocking
     move_to_pose = PoseStamped()
     move_to_pose.header=Header(stamp=rospy.Time.now(), frame_id='base')
     move_to_pose.pose.position=Point(
-                    x=0.8,
-                    y=0.3,
+                    x=-0.25,
+                    y=0.7,
                     z=0.3,
                 )
     move_to_pose.pose.orientation=Quaternion(
-                    x=0,
-                    y=math.sqrt(2)/2,
-                    z=0,
-                    w=math.sqrt(2)/2,
+                    x=-0.5,
+                    y=0.5,
+                    z=0.5,
+                    w=0.5,
                 )
     
     #Send PoseStamped() message to Baxter's movement function

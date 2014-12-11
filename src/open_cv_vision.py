@@ -67,12 +67,12 @@ def color_selection_hsv(message):
 		high_v = 255
 
 	elif message.data == "blue":
-		low_h  = 85
+		low_h  = 105
 		high_h = 115
-		low_s  = 100
-		high_s = 175
-		low_v  = 50
-		high_v = 64
+		low_s  = 135
+		high_s = 160
+		low_v  = 20
+		high_v = 60
 
 	elif message.data == "yellow":
 		low_h  = 15

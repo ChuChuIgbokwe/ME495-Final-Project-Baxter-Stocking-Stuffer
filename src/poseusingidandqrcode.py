@@ -64,25 +64,25 @@ iteration = 0
 
 #Setting start pose to look for goal ID
 pose_start = np.full((7,1), None)
-pose_start[0,0] = 0.8
-pose_start[1,0] = 0.6
+pose_start[0,0] = -.5
+pose_start[1,0] = 0.9
 pose_start[2,0] = 0.2
-pose_start[3,0] = 0
-pose_start[4,0] = sqrt(2)/2
-pose_start[5,0] = 0
-pose_start[6,0] = sqrt(2)/2
+pose_start[3,0] = -0.5
+pose_start[4,0] = 0.5
+pose_start[5,0] = 0.5
+pose_start[6,0] = 0.5
 
 
 
-#Once found pose of stocking, nitial pose above table to start looking for colored object
+#Once found pose of stocking, initial pose above table to start looking for colored object
 pose_above_table = np.full((7,1), None)
-pose_above_table[0,0] = 0.75
-pose_above_table[1,0] = 0.3
-pose_above_table[2,0] = 0.6
+pose_above_table[0,0] = 0.8
+pose_above_table[1,0] = 0.15
+pose_above_table[2,0] = 0.35
 pose_above_table[3,0] = 0
-pose_above_table[4,0] = math.sqrt(1 - 0.15**2)
+pose_above_table[4,0] = 1
 pose_above_table[5,0] = 0
-pose_above_table[6,0] = 0.15
+pose_above_table[6,0] = 0
 
 
 #Create publisher to send PoseStamped() message to topic for Baxter to move towards
@@ -161,12 +161,30 @@ def getTagID(msg):
 
     global current_ID, fourth_flag
 
+    scanned_identity = []
+
     #Determine current ID
     for m in msg.markers:
         identity = m.id
 
+        scanned_identity.append(identity)
+
+    #If found more than one identity, picks the first one (usually left-most)
+    if len(scanned_identity) != 0:
+
+        if len(scanned_identity)==1 or len(scanned_identity)==2:
+            current_ID = scanned_identity[0]
+
+        elif len(scanned_identity) == 3:
+            current_ID = scanned_identity[1]
+
+        elif len(scanned_identity) == 4:
+            current_ID = scanned_identity[2]
+
+        scanned_identity = np.sort(scanned_identity)
+
         #Set current ID to a global variable, and turn state of fourth_flag to True
-        current_ID = identity
+
 
         fourth_flag = True
 
@@ -191,8 +209,8 @@ def FindCorrectID():
     global pose_present, previous_ID, iteration
 
     #Local variables for determining movement between stockings
-    stocking_distance_apart = 0.2 #m
-    dist_qr_above_stocking = 0.15 #m
+    stocking_distance_apart = 0.23 #m
+    dist_qr_above_stocking = 0.2 #m
     wait = 0
 
     
@@ -225,7 +243,7 @@ def FindCorrectID():
             print "Current_ID:",current_ID
             #Move to above stocking to read QR code
             pointx = pose_ee[0,0]
-            pointy = pose_ee[1,0]
+            pointy = pose_ee[1,0] + 0.15
             pointz = pose_ee[2,0] + dist_qr_above_stocking
           
             quatx = pose_ee[3,0]
@@ -251,19 +269,24 @@ def FindCorrectID():
             tag_quat_z = quat_visp.z
             tag_quat_w = quat_visp.w
 
-            #Store position of QR code as pose of present
-            pose_present[0,0] = pose_ee[0,0] - tag_pos_x
-            pose_present[1,0] = pose_ee[1,0] - tag_pos_y
-            pose_present[2,0] = pose_ee[2,0] - tag_pos_z
+            print "QR Code Position from EE Pose:",position_visp
+            print "Current E-E Pose:",pose_ee
 
-            pose_present[3,0] = 0
-            pose_present[4,0] = sqrt(2)/2
-            pose_present[5,0] = 0
-            pose_present[6,0] = sqrt(2)/2
+            #Store position of QR code as pose of present
+            pose_present[0,0] = pose_ee[0,0] + tag_pos_x
+            pose_present[1,0] = pose_ee[1,0] + tag_pos_z
+            pose_present[2,0] = pose_ee[2,0] + tag_pos_y
+
+            pose_present[3,0] = -0.5
+            pose_present[4,0] = 0.5
+            pose_present[5,0] = 0.5
+            pose_present[6,0] = 0.5
+
+            print "Pose of the present:",pose_present
 
             #Move to second stocking
-            pointx = pose_ee[0,0]
-            pointy = pose_ee[1,0] - stocking_distance_apart
+            pointx = pose_ee[0,0] + stocking_distance_apart
+            pointy = pose_ee[1,0] - 0.15
             pointz = pose_ee[2,0] - dist_qr_above_stocking
           
             quatx = pose_ee[3,0]
@@ -283,9 +306,9 @@ def FindCorrectID():
             print "Current_ID:",current_ID
 
             #Store position of present to above second stocking
-            pose_present[0,0] = pose_present[0,0]
+            pose_present[0,0] = pose_present[0,0] + stocking_distance_apart
             pose_present[1,0] = pose_present[1,0]
-            pose_present[2,0] = pose_present[2,0] + dist_qr_above_stocking
+            pose_present[2,0] = pose_present[2,0]
 
             pose_present[3,0] = pose_present[3,0]
             pose_present[4,0] = pose_present[4,0]
@@ -293,8 +316,8 @@ def FindCorrectID():
             pose_present[6,0] = pose_present[6,0]
 
             #Move to third stocking
-            pointx = pose_ee[0,0]
-            pointy = pose_ee[1,0] - stocking_distance_apart
+            pointx = pose_ee[0,0] + stocking_distance_apart
+            pointy = pose_ee[1,0]
             pointz = pose_ee[2,0]
           
             quatx = pose_ee[3,0]
@@ -306,9 +329,9 @@ def FindCorrectID():
             if previous_ID == goal_ID:
 
                 #Update pose of present
-                pose_present[0,0] = pose_present[0,0]
+                pose_present[0,0] = pose_present[0,0] - stocking_distance_apart
                 pose_present[1,0] = pose_present[1,0]
-                pose_present[2,0] = pose_present[2,0] - dist_qr_above_stocking
+                pose_present[2,0] = pose_present[2,0]
 
                 pose_present[3,0] = pose_present[3,0]
                 pose_present[4,0] = pose_present[4,0]
@@ -317,7 +340,7 @@ def FindCorrectID():
 
                 #Update pose of end-effector such that it does not move
                 pointx = pose_ee[0,0]
-                pointy = pose_ee[1,0] - stocking_distance_apart
+                pointy = pose_ee[1,0]
                 pointz = pose_ee[2,0]
               
                 quatx = pose_ee[3,0]
@@ -340,9 +363,9 @@ def FindCorrectID():
             print "Current_ID:",current_ID
 
             #Store position of present to above third stocking
-            pose_present[0,0] = pose_present[0,0]
+            pose_present[0,0] = pose_present[0,0] + stocking_distance_apart
             pose_present[1,0] = pose_present[1,0]
-            pose_present[2,0] = pose_present[2,0] + dist_qr_above_stocking
+            pose_present[2,0] = pose_present[2,0]
 
             pose_present[3,0] = pose_present[3,0]
             pose_present[4,0] = pose_present[4,0]
@@ -350,8 +373,8 @@ def FindCorrectID():
             pose_present[6,0] = pose_present[6,0]
 
             #Move to fourth stocking
-            pointx = pose_ee[0,0]
-            pointy = pose_ee[1,0] - stocking_distance_apart
+            pointx = pose_ee[0,0] + stocking_distance_apart
+            pointy = pose_ee[1,0]
             pointz = pose_ee[2,0]
           
             quatx = pose_ee[3,0]
@@ -371,9 +394,9 @@ def FindCorrectID():
             print "Current_ID:",current_ID
 
             #Store position of present to above fourth stocking
-            pose_present[0,0] = pose_present[0,0]
+            pose_present[0,0] = pose_present[0,0] + stocking_distance_apart
             pose_present[1,0] = pose_present[1,0]
-            pose_present[2,0] = pose_present[2,0] + dist_qr_above_stocking
+            pose_present[2,0] = pose_present[2,0]
 
             pose_present[3,0] = pose_present[3,0]
             pose_present[4,0] = pose_present[4,0]
@@ -420,10 +443,6 @@ def FindCorrectID():
             quatz = pose_above_table[5,0]
             quatw = pose_above_table[6,0]
 
-
-            #Remain stationary, account for movement to next stocking,
-            pose_present[2,0] = pose_present[2,0] - stocking_distance_apart
-
             #Publish pose of present
             move_to_present = PoseStamped()
             move_to_present.header=Header(stamp=rospy.Time.now(), frame_id='base')
@@ -446,9 +465,6 @@ def FindCorrectID():
 
             #Once found stocking, turn status to F and start up next node to move towards object
             pub_statestocking.publish(False)
-
-            pub_statecolordetection.publish(True)
-
 
             wait = 1000
 
@@ -478,9 +494,16 @@ def FindCorrectID():
 
 
     #Wait for pose_ee to get updated correctly
-    rospy.sleep(2)
+    global first_flag
+    first_flag = False
+
+    rospy.sleep(6)
+
     if wait == 1000:
-        rospy.sleep(10)
+        print "About to sleep for 8 seconds"
+        rospy.sleep(4)
+        pub_statecolordetection.publish(True)
+        print "Slept for 8 seconds"
 
     return 
 
