@@ -96,6 +96,8 @@ pub_statecolordetection = rospy.Publisher('start/colordetection', Bool)
 
 
 
+
+#Obtains T/F status of whether to find the pose of a stocking
 def getStateStockingPose(msg):
 
     global StateStockingPose
@@ -143,6 +145,7 @@ def getPoseTag(msg):
     return
 
 
+
 #Gets the goal ID to be looking for
 def getStockingID(msg):
 
@@ -156,7 +159,7 @@ def getStockingID(msg):
 
 
 
-#Get the current ID found
+#Get the current ID looking at
 def getTagID(msg):
 
     global current_ID, fourth_flag
@@ -172,19 +175,10 @@ def getTagID(msg):
     #If found more than one identity, picks the first one (usually left-most)
     if len(scanned_identity) != 0:
 
-        if len(scanned_identity)==1 or len(scanned_identity)==2:
-            current_ID = scanned_identity[0]
-
-        elif len(scanned_identity) == 3:
-            current_ID = scanned_identity[1]
-
-        elif len(scanned_identity) == 4:
-            current_ID = scanned_identity[2]
-
         scanned_identity = np.sort(scanned_identity)
 
         #Set current ID to a global variable, and turn state of fourth_flag to True
-
+        current_ID = scanned_identity[0]
 
         fourth_flag = True
 
@@ -217,11 +211,9 @@ def FindCorrectID():
     #Only run when asked to
     if StateStockingPose == True:
 
-        print "State of Stocking Pose:",StateStockingPose,iteration
-
         #Move to start pose
         if iteration == 0:
-            print "Moving to start pose"
+            rospy.loginfo("Moving to start pose.")
             pointx = pose_start[0,0]
             pointy = pose_start[1,0]
             pointz = pose_start[2,0]
@@ -234,13 +226,13 @@ def FindCorrectID():
         #At first stocking, read ID, move above stocking to scan QR code
         elif iteration == 1:
 
-            print "At first stocking, reading ID, move above stocking to scan QR code"
+            rospy.loginfo("At first stocking, reading ID, move above stocking to scan QR code.")
 
             #Scanned ID is the goal ID
             if current_ID == goal_ID:
                previous_ID = current_ID
 
-            print "Current_ID:",current_ID
+            rospy.loginfo("Current_ID: %s",current_ID)
             #Move to above stocking to read QR code
             pointx = pose_ee[0,0]
             pointy = pose_ee[1,0] + 0.15
@@ -254,7 +246,7 @@ def FindCorrectID():
         #Above first stocking, read QR code, store it for later, and move to second stocking
         elif iteration == 2:
 
-            print "Above first stocking, read QR code, store it for later, and move to second stocking"
+            rospy.loginfo("Above first stocking, read QR code, store it for later, and move to second stocking")
 
             #Obtain pose of QR code
             position_visp = tag_msg.pose.position
@@ -269,9 +261,6 @@ def FindCorrectID():
             tag_quat_z = quat_visp.z
             tag_quat_w = quat_visp.w
 
-            print "QR Code Position from EE Pose:",position_visp
-            print "Current E-E Pose:",pose_ee
-
             #Store position of QR code as pose of present
             pose_present[0,0] = pose_ee[0,0] + tag_pos_x
             pose_present[1,0] = pose_ee[1,0] + tag_pos_z
@@ -282,7 +271,7 @@ def FindCorrectID():
             pose_present[5,0] = 0.5
             pose_present[6,0] = 0.5
 
-            print "Pose of the present:",pose_present
+            rospy.loginfo("Pose of the present: %s",pose_present)
 
             #Move to second stocking
             pointx = pose_ee[0,0] + stocking_distance_apart
@@ -297,13 +286,13 @@ def FindCorrectID():
         #At second stocking, read ID, move to third stocking
         elif iteration == 3:
 
-            print "At second stocking, read ID, move to third stocking"
+            rospy.loginfo("At second stocking, read ID, move to third stocking")
 
             #Scanned ID is the goal ID
             if current_ID == goal_ID:
                 iteration = 1000 #exit loop
 
-            print "Current_ID:",current_ID
+            rospy.loginfo("Current_ID: %s",current_ID)
 
             #Store position of present to above second stocking
             pose_present[0,0] = pose_present[0,0] + stocking_distance_apart
@@ -354,13 +343,13 @@ def FindCorrectID():
         #At third stocking, read ID, move to fourth stocking
         elif iteration == 4:
 
-            print "At third stocking, read ID, move to fourth stocking"
+            rospy.loginfo("At third stocking, read ID, move to fourth stocking")
 
             #Scanned ID is goal ID
             if current_ID == goal_ID:
                 iteration = 1000 #exit loop
 
-            print "Current_ID:",current_ID
+            rospy.loginfo("Current_ID: %s",current_ID)
 
             #Store position of present to above third stocking
             pose_present[0,0] = pose_present[0,0] + stocking_distance_apart
@@ -385,13 +374,13 @@ def FindCorrectID():
         #At fourth stocking, read ID
         elif iteration == 5:
 
-            print "At fourth stocking, read ID"
+            rospy.loginfo("At fourth stocking, read ID")
 
             #Scanned ID is goal ID
             if current_ID == goal_ID:
                 iteration = 1000 #exit loop
 
-            print "Current_ID:",current_ID
+            rospy.loginfo("Current_ID: %s",current_ID)
 
             #Store position of present to above fourth stocking
             pose_present[0,0] = pose_present[0,0] + stocking_distance_apart
@@ -416,7 +405,7 @@ def FindCorrectID():
         #Goal ID was not found, try again by starting at home position
         elif iteration == 6:
             iteration = -1
-            print "Goal ID was not found, try again by starting at home position"
+            rospy.loginfo("Goal ID was not found, trying again by starting at home position")
 
             #Remain stationary
             pointx = pose_ee[0,0]
@@ -431,7 +420,7 @@ def FindCorrectID():
         #Goal ID was correctly found, publish pose of stocking for later use after finding correct present
         elif iteration > 1000:
 
-            print "Goal ID was correctly found, publish pose of stocking for later use after finding correct present"
+            rospy.loginfo("Goal ID was correctly found, publish pose of stocking for later use after finding correct present")
 
             #Move Baxter to a position above the table where he can see all potential presents
             pointx = pose_above_table[0,0]
@@ -458,8 +447,7 @@ def FindCorrectID():
                             w=pose_present[6,0],
                         )
 
-            print "Pose of present:",move_to_present.pose
-            print "Moving to pick up present."
+            rospy.loginfo("Moving to pick up present.")
 
             pub_posestocking.publish(move_to_present)
 
@@ -499,11 +487,10 @@ def FindCorrectID():
 
     rospy.sleep(6)
 
+    #Extra sleep for moving to present
     if wait == 1000:
-        print "About to sleep for 8 seconds"
         rospy.sleep(4)
         pub_statecolordetection.publish(True)
-        print "Slept for 8 seconds"
 
     return 
 

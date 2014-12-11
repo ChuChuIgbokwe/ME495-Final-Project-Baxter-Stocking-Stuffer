@@ -53,16 +53,8 @@ pub_state_releasepresent = rospy.Publisher('start/releasepresent', Bool)
 
 pub_state_sweepstocking = rospy.Publisher('/start/sweep', Bool)
 
-
-
 pub_stockingpose = rospy.Publisher('pose/stocking', PoseStamped)
 
-
-
-
-pointx = None
-pointy = None
-pointz = None
 
 
 
@@ -88,8 +80,6 @@ def getStateReleasePresent(msg):
     StateReleasePresent = msg.data
 
     third_flag = True
-
-    print "StateReleasePresent:",third_flag
 
     return
 
@@ -136,30 +126,11 @@ def NewPoseBacktoStocking(msg):
         pose_stocking = msg
 
 
-
-        print "Pose of Stocking:",pose_stocking
+        rospy.loginfo("Pose of Stocking:",pose_stocking)
 
         pointx = pose_stocking[0,0]
         pointy = pose_stocking[1,0]
         pointz = pose_stocking[2,0]
-
-
-        if fabs(pose_stocking[0,0]-(-0.55))<0.1:
-            pointx = -0.55
-            pointy = 1.06
-            pointz = 0.35
-        elif fabs(pose_stocking[0,0]-(-0.55+1*0.23))<0.1:
-            pointx = -0.55+1*0.23
-            pointy = 1.06
-            pointz = 0.35
-        elif fabs(pose_stocking[0,0]-(-0.55+2*0.23))<0.1:
-            pointx = -0.55+2*0.23
-            pointy = 1.06
-            pointz = 0.35
-        elif fabs(pose_stocking[0,0]-(-0.55+3*0.23))<0.1:
-            pointx = -0.55+3*0.23
-            pointy = 1.06
-            pointz = 0.35
 
 
         #Combine position and orientation in a PoseStamped() message
@@ -178,8 +149,7 @@ def NewPoseBacktoStocking(msg):
                     )
         
 
-        print "Moving back to stocking to release present, with pose:"
-        print move_to_pose
+        rospy.loginfo("Moving back to stocking to release present, with pose: %s", move_to_pose)
 
         #Send PoseStamped() message to Baxter's movement function
         pub_baxtermovement.publish(move_to_pose)
@@ -190,7 +160,7 @@ def NewPoseBacktoStocking(msg):
 
         rospy.sleep(15)
 
-        print "Should be at location to drop present."
+        rospy.loginfo("Should be at location to drop present.")
 
         pub_state_releasepresent.publish(True)
 
@@ -210,17 +180,12 @@ def ReleasePresent():
     #Only release present if asked to
     if StateReleasePresent == True:
 
-            print "Releasing present in stocking."
-
             #Open Baxter's left gripper
             baxterleft = baxter_interface.Gripper('left')
             rospy.sleep(1)
             baxterleft.open()
 
-            #Wait for gripper to open
-            # rospy.sleep(2)
-
-            print "Present dropped in stocking."
+            rospy.loginfo("Present dropped in stocking.")
 
             #Once released, turn state to F, and change T/F state of sweep to T
             pub_state_releasepresent.publish(False)
@@ -228,7 +193,7 @@ def ReleasePresent():
             rospy.sleep(4)
 
             #Move to a position where can see all stockings
-            #MovetoScanStockingRange()
+            MovetoScanStockingRange()
 
             pub_state_sweepstocking.publish(True)
 

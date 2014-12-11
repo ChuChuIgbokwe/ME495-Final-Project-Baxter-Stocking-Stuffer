@@ -24,25 +24,10 @@ high_v = None
 pub = rospy.Publisher('opencv/center_of_object', Point)
 
 
+#Initialize flags to false
 first_flag = False
 
 
-
-# def nothing(x):
-# 	pass
-
-
-#Creates trackbar for thresholding HSV image
-# def initialize_threshold_trackbar():
-
-# 	cv2.createTrackbar("Low H", "Control", low_h, 255, nothing)
-# 	cv2.createTrackbar("High H", "Control", high_h, 255, nothing)
-# 	cv2.createTrackbar("Low S", "Control", low_s, 255, nothing)
-# 	cv2.createTrackbar("High S", "Control", high_s, 255, nothing)
-# 	cv2.createTrackbar("Low V", "Control", low_v, 255, nothing)
-# 	cv2.createTrackbar("High V", "Control", high_v, 255, nothing)
-
-# 	print "Initialized thresholing trackbar."
 
 
 #Selects HSV thresholding values based on color to look for
@@ -115,18 +100,7 @@ def callback(message):
 	#Converting image to HSV format
 	hsv = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
 
-
-	#Thresholding image based on current trackbar values
-	# low_h  = cv2.getTrackbarPos("Low H", "Control")
-	# high_h = cv2.getTrackbarPos("High H", "Control")
-	# low_s  = cv2.getTrackbarPos("Low S", "Control")
-	# high_s = cv2.getTrackbarPos("High S", "Control")
-	# low_v  = cv2.getTrackbarPos("Low V", "Control")
-	# high_v = cv2.getTrackbarPos("High V", "Control")
-
-
 	thresholded = cv2.inRange(hsv, np.array([low_h, low_s, low_v]), np.array([high_h, high_s, high_v]))
-	#res = cv2.bitwise_and(cv_image, cv_image, mask= thresholded)
 
 
 	#Morphological opening (remove small objects from the foreground)
@@ -136,14 +110,6 @@ def callback(message):
 	#Morphological closing (fill small holes in the foreground)
 	thresholded = cv2.dilate(thresholded, np.ones((2,2), np.uint8), iterations=1)
 	thresholded = cv2.erode(thresholded, np.ones((2,2), np.uint8), iterations=1)
-
-
-
-	#Get left hand range state from rangefinder
-	# dist = baxter_interface.analog_io.AnalogIO('left_hand_range').state()
-
-	#if dist<65000:
-		#print "Rangefinder distance to object:", dist
 
 
 	#Finding center of red ball
@@ -164,10 +130,6 @@ def callback(message):
 		P.y = -(cy - (height/2))
 		pub.publish(P)
 
-		#print "Center of ball: (", P.x, ", ", P.y, ")", "A/B:", A,B,A/B
-	# else:
-	# 	print "Ball off screen."
-
 
 	#Printing to screen the images
 	cv2.imshow("Original", cv_image)
@@ -175,11 +137,11 @@ def callback(message):
 	cv2.waitKey(3)
 
 
+
 #Subscribes to left hand camera image feed
 def main():
 
 	#Create names for OpenCV images and orient them appropriately
-	# cv2.namedWindow("Control", 1)
 	cv2.namedWindow("Original", 1)
 	cv2.namedWindow("Thresholded", 2)
 
@@ -190,13 +152,6 @@ def main():
 	#Subscribe to left hand camera image 
 	rospy.Subscriber("/cameras/left_hand_camera/image", Image, callback)
 	rospy.Subscriber("/color_identifier", String, color_selection_hsv)
-
-
-	# while not first_flag:
-	# 	pass
-
-	#Initialize threshold trackbar
-	# initialize_threshold_trackbar()
 
 
 	#Keep from exiting until this node is stopped

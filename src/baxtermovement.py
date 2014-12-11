@@ -34,15 +34,10 @@ from baxter_core_msgs.msg import EndpointState
 #Accepts PoseStamped() message and moves towards it
 def BaxterMovement(new_pose):
 
-    rospy.loginfo("ENTERED THE MOVEMENT LOOP")
-
-
-    rospy.loginfo("Getting robot state... ")
+    #Enabling robot
     rs = baxter_interface.RobotEnable(CHECK_VERSION)
     init_state = rs.state().enabled
 
-
-    rospy.loginfo("Enabling robot... ") 
     rs.enable()
 
 
@@ -53,17 +48,12 @@ def BaxterMovement(new_pose):
     iksvc = rospy.ServiceProxy(ns, SolvePositionIK)
     ikreq = SolvePositionIKRequest()
     hdr = Header(stamp=rospy.Time.now(), frame_id='base')    
-   
-    rospy.loginfo("Received target location message!")
-
 
     #Request IK Service Client with new pose to move to
     ikreq.pose_stamp.append(new_pose)
     try:
-        #rospy.wait_for_service(ns, 5.0)
         resp = iksvc(ikreq)
     except (rospy.ServiceException, rospy.ROSException), e:
-        rospy.logerr("Service call failed: %s" % (e,))
         return 1
     print resp
 
@@ -82,9 +72,6 @@ def BaxterMovement(new_pose):
               (seed_str,))
         # Format solution into Limb API-compatible dictionary
         limb_joints = dict(zip(resp.joints[0].name, resp.joints[0].position))
-        #print "\nIK Joint Solution:\n", limb_joints
-        #rospy.loginfo("------------------")
-        #print "Response Message:\n", resp
     else:
         rospy.loginfo("INVALID POSE - No Valid Joint Solution Found.")
 

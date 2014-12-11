@@ -55,11 +55,13 @@ completed_list = []
 StateSweep =  True
 run = True
 
-first_flag = False
-second_flag = False
+first_flag = False #wait for baxter to move
+second_flag = False #T/F state of identify present
 
 
 
+
+#Move to a home configuration
 def MovetoHome():
 
     #Combine position and orientation in a PoseStamped() message
@@ -86,6 +88,7 @@ def MovetoHome():
     first_flag = True
 
     return
+
 
 
 #Move to a position where can see all stockings
@@ -133,7 +136,6 @@ def identify_pres(msg):
 
     scanned_identity = []
 
-    # StateSweep = True
 
     #Onlys runs when told to
     if run == True:
@@ -204,18 +206,14 @@ def identify_pres(msg):
 
             print "Looking for colored object:",color,"and ID #:",identity
 
-            # rospy.sleep(0.1)
-
-
 
         #Publishes the status of sweep to F if a new stocking was found, otherwise it remains T
         pub_statesweep.publish(StateSweep)
+
         if StateSweep==False:
             rospy.sleep(1)
             global second_flag
             second_flag = False
-
-        print "Status of StateSweep:",StateSweep
 
     return
 
@@ -255,6 +253,7 @@ def tag_identity_listener():
     MovetoScanRange()
 
     rospy.sleep(5)
+    
 
     #Initially start the sweep for the first stocking
     pub_statesweep.publish(True)
