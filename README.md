@@ -186,11 +186,16 @@ Subscribed Topics:
 
 <h4>open_cv_vision.py
 
-Overall function:
+Overall function: It is used to identify a specific colored object and move it to the center of the camera's view
++ This node listens to which color object Baxter needs to find and selects from the appropriate range of HSV filter valus that it needs to use in order to properly identify the object
++ Finds the pose of the center of the object and publishes it to the /opencv/center_of_object topic
 
-Publishers:
+Published Topics:
+- `/opencv/center_of_object`
 
 Subscribers:
+- `/cameras/left_hand_camera/image`
+- `/color_identifier`
 
 
 <h4>poseusingcolordetection.py
