@@ -146,38 +146,40 @@ These nodes run in a certain sequence of steps. The way this is accomplished is 
 
 <h4>needed_present_identifier.py
 
-Overall function: This node kicks off the stocking stuffing sequence. In addition, it is needed to identify whose present Baxter needs to search for on the table. 
+#####Overall function: 
+This node kicks off the stocking stuffing sequence. In addition, it is needed to identify whose present Baxter needs to search for on the table. 
 
 + The node starts if the state of `/start/sweep` is True and Baxter moves to a set distance away from the stockings so that he can see all of the tags at once
 + When Baxter comes across an ID that is not in his "completed list" of identified presents yet, he publishes the color associated with the ID to `/color_identifier` and the ID to `/scanned_stocking_id`
 + Publishes True to `/start/stockingpose` in order to begin the next element in the sequence 
 + Publishes False to `/state/sweep` in order to end the present ID search.
 
-Published Topics:
+#####Published Topics:
 - `/color_identifier`
 - `/scanned_stocking_id`
 - `/start/sweep`
 - `/start/stockingpose`
 - `/baxter_movement/posestamped`
 
-Subscribed Topics:
+#####Subscribed Topics:
 - `/ar_pose_marker`
 - `/start/sweep`
 
 <h4>poseusingidandqr.py
 
-Overall function: It gets the position of the stocking, moves to it and publishes a message about its location
+#####Overall function: 
+It gets the position of the stocking, moves to it and publishes a message about its location
 + The node starts if state of `/start/stockingpose` is True
 + It sets the state of to `/start/stockingpose` to False when the action is completed
 + It sets the state of `start/colordetection` to True at the end starting the next node
 
-Published Topics:
+#####Published Topics:
 - `baxter_movement/posestamped`
 - `start/stockingpose`
 - `pose/stocking`
 - `start/colordetection`
 
-Subscribed Topics:
+#####Subscribed Topics:
 - `/robot/limb/left/endpoint_state`
 - `/visp_auto_tracker/object_position`
 - `/ar_pose_marker`
@@ -186,50 +188,53 @@ Subscribed Topics:
 
 <h4>open_cv_vision.py
 
-Overall function: It is used to identify a specific colored object and move it to the center of the camera's view
+#####Overall function: 
+It is used to identify a specific colored object and move it to the center of the camera's view
 + This node listens to which color object Baxter needs to find and selects from the appropriate range of HSV filter valus that it needs to use in order to properly identify the object
 + Finds the pose of the center of the object and publishes it to the `/opencv/center_of_object` topic
 
-Published Topics:
+#####Published Topics:
 - `/opencv/center_of_object`
 
-Subscribers:
+#####Subscribers:
 - `/cameras/left_hand_camera/image`
 - `/color_identifier`
 
 <h4>poseusingcolordetection.py
 
-Overall function: It locates the object and moves to a position above the centre of the object and publishes it. It also moves the end effector to the object and grasps it.It then moves to the position above the table it started looking for the present from.
+#####Overall function: 
+It locates the object and moves to a position above the centre of the object and publishes it. It also moves the end effector to the object and grasps it.It then moves to the position above the table it started looking for the present from.
 + The node starts when the state of `/start/colordetection` is True. It publishes False to this topic at the end when the action is complete
 + It changes the state of `start/backtostocking` to True to start the next node
 
-Publishers:
+#####Publishers:
 - `baxter_movement/posestamped`
 - `start/colordetection`
 - `start/backtostocking`
 
-Subscribers:
+#####Subscribers:
 - `/robot/limb/left/endpoint_state`
 - `/opencv/center_of_object`
 - `/start/colordetection`
 
 <h4>back_to_stocking_and_release.py`
 
-Overall Function: It brings the present back to the stocking pose it found in the beginning of the sequence and opens the gripper, dropping the present into the stocking.
+#####Overall Function: 
+It brings the present back to the stocking pose it found in the beginning of the sequence and opens the gripper, dropping the present into the stocking.
 + The node starts when the state of `/start/backtostocking` is True. It publishes to False when the action is complete
 + Gets the pose of the stocking that was obtained in the second step of the sequence by listening to the topic `/pose/stocking` and publishes that poseStamped message to `/baxter_movement/posestamped` to move his end effector to that pose
 + Once his arm reaches that pose, the node changes the state of `/start/releasepresent` to Tre
 + After releasing the stocking, the node changes the state of `/start/backtostocking` to False and `/start/sweep` back to True to begin the sequence again
 
 
-Published Topics:
+#####Published Topics:
 - `/baxter_movement/posestamed`
 - `/start/backtostocking`
 - `/start/releasepresent`
 - `/start/sweep`
 - `/pose/stocking`
 
-Subscribed Topics:
+#####Subscribed Topics:
 - `/pose/stocking`
 - `/start/backtostocking`
 - `/start/releasepresent`
