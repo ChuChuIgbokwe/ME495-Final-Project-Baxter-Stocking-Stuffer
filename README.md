@@ -196,7 +196,7 @@ It is used to identify a specific colored object and move it to the center of th
 #####Published Topics:
 - `/opencv/center_of_object`
 
-#####Subscribers:
+#####Subscribed Topics:
 - `/cameras/left_hand_camera/image`
 - `/color_identifier`
 
@@ -207,12 +207,12 @@ It locates the object and moves to a position above the centre of the object and
 + The node starts when the state of `/start/colordetection` is True. It publishes False to this topic at the end when the action is complete
 + It changes the state of `start/backtostocking` to True to start the next node
 
-#####Publishers:
+#####Published Topics:
 - `baxter_movement/posestamped`
 - `start/colordetection`
 - `start/backtostocking`
 
-#####Subscribers:
+#####Subscribed Topics:
 - `/robot/limb/left/endpoint_state`
 - `/opencv/center_of_object`
 - `/start/colordetection`
