@@ -116,10 +116,9 @@ Subscribers:
 - <h4>poseusingidandqr.py
 
 Overall function: It gets the position of the stocking, moves to it and publishes a message about its location
-+ The node starts if state `/start/stockingpose` is True
-+ It sets the state of to `pose/stocking` False
++ The node starts if state of  `/start/stockingpose` is True
++ It sets the state of to `pose/stocking` to False
 + It sets the state of `start/colordetection` to True at the end starting the next node
-
 Publishers:
 - `baxter_movement/posestamped`
 - `start/stockingpose`
@@ -146,7 +145,7 @@ Subscribers:
 - <h4>poseusingcolordetection.py
 
 Overall function: It locates the object and moves to a position above the centre of the object and publishes it. It also moves the end effector to the object and grasps it.It then moves to the position above the table it started looking for the present from.
--The node starts when `/start/colordetection` is True. It publishes False to this topic at the end when the action is complete.
+-The node starts when the state of `/start/colordetection` is True. It publishes False to this topic at the end when the action is complete.
 -It changes the state of `start/backtostocking` to True to start the next node
 
 Publishers:
