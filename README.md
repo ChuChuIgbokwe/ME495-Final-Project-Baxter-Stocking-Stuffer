@@ -150,25 +150,21 @@ These nodes run in a certain sequence of steps. The way this is accomplished is 
 
 Overall function: This node kicks off the stocking stuffing sequence. In addition, it is needed to identify whose present Baxter needs to search for on the table. 
 
-Published topics:
++ The node starts if the state of '/start/sweep' is True and Baxter moves to a set distance away from the stockings so that he can see all of the tags at once
++ When Baxter comes across an ID that is not in his "completed list" of identified presents yet, he publishes the color associated with the ID to /color_identifier and the ID to /scanned_stocking_id
++ Publishes True to /start/stockingpose in order to begin the next element in the sequence 
++ Publishes False to /state/sweep in order to end the present ID search.
+
+Published Topics:
 - `/color_identifier`
 - `/scanned_stocking_id`
 - `/start/sweep`
 - `/start/stockingpose`
 - `/baxter_movement/posestamped`
 
-When an ID that has not had a present associated with it yet is found 
-
-color identifier
-scanned stocking id
-start sweep; starts off as true and changes to false at the end once stocking id is identified
-start stockingpose; published to true
-baxter movement stamped
-
-Subscribers:
-- `ar_pose_marker`
-- `start/sweep`
-- `/visp_auto_tracker/object_position`
+Subscribed Topics:
+- `/ar_pose_marker`
+- `/start/sweep`
 
 - <h4>poseusingidandqr.py
 
@@ -176,19 +172,19 @@ Overall function: It gets the position of the stocking, moves to it and publishe
 + The node starts if state of  `/start/stockingpose` is True
 + It sets the state of to `pose/stocking` to False
 + It sets the state of `start/colordetection` to True at the end starting the next node
-Publishers:
+
+Published Topics:
 - `baxter_movement/posestamped`
 - `start/stockingpose`
 - `pose/stocking`
 - `start/colordetection`
 
-Subscribers:
+Subscribed Topics:
 - `/robot/limb/left/endpoint_state`
 - `/visp_auto_tracker/object_position`
 - `/ar_pose_marker`
 - `scanned_stocking_id`
 - `/start/stockingpose`
-
 
 - <h4>open_cv_vision.py
 
