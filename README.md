@@ -53,15 +53,16 @@ Outline of the steps that went into building the package that will run Baxter th
 6. Move Baxter's gripper to the present location  
 7. Pick up the present  
 8. Move Baxter's gripper to the corresponding stocking location  
-9. Drop the present into the stocking  
+9. Drop the present into the stocking
+10. Repeat steps 1-9 until Baxter has stuffed all of the stockings appropriately
 
 
 <a name="Implementation"></a>
 ###Implementation 
 
 
+Below is what the launch file looks like. It starts each of the nodes in the sequence in which they will be used. This is the launch file that you will need to run to run the full sequence. The other launch file in the folder is for simply starting up and testing the ar_track package in order to find ID numbers.
 
-Below is what the launch file looks like. It starts each of the nodes in the sequence in which they will be used.
 ```
 <launch>
 
@@ -119,14 +120,14 @@ Below is what the launch file looks like. It starts each of the nodes in the seq
 ```
 
 <a name="Dependencies"></a>
-###Dependencies 
+###Dependencies:
 - `ar_track`
 - `visp_auto_tracker`
 - ` `
 - ` `
 
 <a name="Package Installation"></a>
-###Package Installation 
+###Package Installation:
 The following packages need to be installed
 - `ar_track_alvar $ sudo apt-get install`
 
@@ -207,8 +208,8 @@ Publishers:
 Subscribers:
 
 <a name="Conclusions"></a>
-###Conclusions 
-
+###Conclusions: 
+####Future Steps:
 
 
 ![Baxter Stocking Stuffer picture](https://raw.githubusercontent.com/ChuChuIgbokwe/ME495-Final-Project-Baxter-Stocking-Stuffer/master/baxterpic.jpeg)
