@@ -144,6 +144,8 @@ The following packages need to be installed
 ###Main Scripts:
 These nodes run in a certain sequence of steps. The way this is accomplished is by having each of these nodes listen to certain topics that contain boolean messages of true and false. Published messages of true to certain topics begin specific actions and the opposite is true for when false messages are published.
 
+
+
 <h4>needed_present_identifier.py
 
 Overall function: This node kicks off the stocking stuffing sequence. In addition, it is needed to identify whose present Baxter needs to search for on the table. 
@@ -196,7 +198,6 @@ Published Topics:
 Subscribers:
 - `/cameras/left_hand_camera/image`
 - `/color_identifier`
-
 
 <h4>poseusingcolordetection.py
 
