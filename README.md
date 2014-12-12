@@ -62,7 +62,13 @@ Outline of the steps that went into building the package that will run Baxter th
 <a name="Implementation"></a>
 ###Implementation 
 
-There are two differnet launch files in our package. artrackv2 is the 
+There are two differnet launch files in our package. ar_trackv2.launch_ is used when you simply want to run the ar_track_alvar package with your camera to see what the tag ID numbers are and test the "present identifying" when you appropriate change the ID numbers and present colors in the "needed_present_identifier.py" script to match what is specific to your project.
+
+To run the entire sequence, you can simply do a roslaunch:
+```
+roslaunch baxter_stocking_stuffer visp_and_move.launch
+
+```
 
 Below is what the launch file used to run the stocking stuffing sequence looks like:  
 ```
