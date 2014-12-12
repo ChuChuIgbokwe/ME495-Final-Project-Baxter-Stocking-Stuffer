@@ -76,7 +76,7 @@ Below is what the launch file used to run the stocking stuffing sequence looks l
 
   <!-- Include launch file that starts AR tracker and identifies stocking -->
   <include file="$(find baxter_stocking_stuffer)/launch/ar_trackv2.launch"/>
-
+  
 
   <!-- Node to open Baxter's left hand camera, after closing them all -->
   <node pkg="baxter_tools" type="camera_control.py" name="close_left_camera" output="screen"  args="-c left_hand_camera">
@@ -129,8 +129,6 @@ Below is what the launch file used to run the stocking stuffing sequence looks l
 ###Dependencies 
 - `ar_track`
 - `visp_auto_tracker`
-- ` `
-- ` `
 
 <a name="Package Installation"></a>
 ###Package Installation 
@@ -146,7 +144,7 @@ The following packages need to be installed
 ###Main Scripts:
 These nodes run in a certain sequence of steps. The way this is accomplished is by having each of these nodes listen to certain topics that contain boolean messages of true and false. Published messages of true to certain topics begin specific actions and the opposite is true for when false messages are published.
 
-- <h4>needed_present_identifier.py
+<h4>needed_present_identifier.py
 
 Overall function: This node kicks off the stocking stuffing sequence. In addition, it is needed to identify whose present Baxter needs to search for on the table. 
 
@@ -166,7 +164,7 @@ Subscribed Topics:
 - `/ar_pose_marker`
 - `/start/sweep`
 
-- <h4>poseusingidandqr.py
+<h4>poseusingidandqr.py
 
 Overall function: It gets the position of the stocking, moves to it and publishes a message about its location
 + The node starts if state of  `/start/stockingpose` is True
@@ -186,7 +184,7 @@ Subscribed Topics:
 - `scanned_stocking_id`
 - `/start/stockingpose`
 
-- <h4>open_cv_vision.py
+<h4>open_cv_vision.py
 
 Overall function:
 
@@ -195,11 +193,11 @@ Publishers:
 Subscribers:
 
 
-- <h4>poseusingcolordetection.py
+<h4>poseusingcolordetection.py
 
 Overall function: It locates the object and moves to a position above the centre of the object and publishes it. It also moves the end effector to the object and grasps it.It then moves to the position above the table it started looking for the present from.
--The node starts when the state of `/start/colordetection` is True. It publishes False to this topic at the end when the action is complete.
--It changes the state of `start/backtostocking` to True to start the next node
++ The node starts when the state of `/start/colordetection` is True. It publishes False to this topic at the end when the action is complete
++ It changes the state of `start/backtostocking` to True to start the next node
 
 Publishers:
 - `baxter_movement/posestamped`
@@ -211,21 +209,27 @@ Subscribers:
 - `/opencv/center_of_object`
 - `/start/colordetection`
 
-- <h4>back_to_stocking_and_release.py`
+<h4>back_to_stocking_and_release.py`
 
-Overall function:
+Overall Function: It brings the present back to the stocking pose it found in the beginning of the sequence and opens the gripper, dropping the present into the stocking.
++ The node starts when the state of `/start/backtostocking` is True. It publishes to False when the action is complete
++ Gets the pose of the stocking that was obtained in the second step of the sequence by listening to the topic `/pose/stocking` and publishes that poseStamped message to `/baxter_movement/posestamped` to move his end effector to that pose
++ Once his arm reaches that pose, the node changes the state of /start/releasepresent to Tre
++ After releasing the stocking, the node changes the state of /start/backtostocking to False and /start/sweep back to True to begin the sequence again
 
-Publishers:
 
-Subscribers:
+Published Topics:
+- `/baxter_movement/posestamed`
+- `/start/backtostocking`
+- `/start/releasepresent`
+- `/start/sweep`
+- `/pose/stocking`
 
-- `poseusingidandqrcode.py`
+Subscribed Topics:
+- `/pose/stocking`
+- `/start/backtostocking`
+- `/start/releasepresent`
 
-Overall function:
-
-Publishers:
-
-Subscribers:
 
 <a name="Conclusions"></a>
 ###Conclusions 
