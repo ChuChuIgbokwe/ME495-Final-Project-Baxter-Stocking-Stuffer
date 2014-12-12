@@ -30,10 +30,10 @@ Click on the image below to watch the video!
 2. [ROS Indigo](http://wiki.ros.org/ROS/Installation) on Ubuntu 14.04  
 3. [Asus Xtion Pro Camera](http://www.asus.com/Multimedia/Xtion_PRO/)  
 4. [4 Stockings](http://www.amazon.com/Plush-Christmas-Stocking-White-Trim/dp/B001L11PQ0/ref=sr_1_9?ie=UTF8&qid=1416682045&sr=8-9&keywords=christmas+stockings)  
-5. 4 Presents of different colors  
+5. 4 Presents of different colors and of appropriate size for Baxter's grippers to hold
 6. [4 AR tags](http://wiki.ros.org/ar_track_alvar?action=AttachFile&do=view&target=markers0to8.png)  
 7. Table to place presents  
-8. Wall and hangers to place stockings  
+8. Wall and hangers to place stockings within range of Baxter
 
 <a name="Preliminary Steps"></a>
 ###Preliminary Steps 
@@ -67,9 +67,7 @@ There are two differnet launch files in our package. ar_trackv2.launch_ is used 
 To run the entire sequence, you can simply do a roslaunch:
 ```
 roslaunch baxter_stocking_stuffer visp_and_move.launch
-
 ```
-
 Below is what the launch file used to run the stocking stuffing sequence looks like:  
 ```
 <launch>
