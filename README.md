@@ -62,11 +62,59 @@ Outline of the steps that went into building the package that will run Baxter th
 <a name="Implementation"></a>
 ###Implementation 
 
+There are two differnet launch files in our package. artrackv2 is the 
 
-
-Below is what the launch file looks like:  
+Below is what the launch file used to run the stocking stuffing sequence looks like:  
 ```
 <launch>
+
+  <!-- Include launch file that starts AR tracker and identifies stocking -->
+  <include file="$(find baxter_stocking_stuffer)/launch/ar_trackv2.launch"/>
+
+
+  <!-- Node to open Baxter's left hand camera, after closing them all -->
+  <node pkg="baxter_tools" type="camera_control.py" name="close_left_camera" output="screen"  args="-c left_hand_camera">
+  </node>
+  <node pkg="baxter_tools" type="camera_control.py" name="close_right_camera" output="screen"  args="-c right_hand_camera">
+  </node>
+  <node pkg="baxter_tools" type="camera_control.py" name="close_head_camera" output="screen"  args="-c head_camera">
+  </node>
+
+  <node pkg="baxter_tools" type="camera_control.py" name="open_left_camera" output="screen"  args="-o left_hand_camera -r 640x400">
+  </node>
+
+
+  <!-- Launch the tracking node -->
+  <node pkg="visp_auto_tracker" type="visp_auto_tracker" name="visp_auto_tracker" output="log">
+    <param name="model_path" type="string" value="$(find visp_auto_tracker)/models" />
+    <param name="model_name" type="string" value="pattern" />
+    <param name="debug_display" type="bool" value="True" />
+        
+    <remap from="/visp_auto_tracker/camera_info" to="/cameras/left_hand_camera/camera_info"/>
+    <remap from="/visp_auto_tracker/image_raw" to="/cameras/left_hand_camera/image"/>
+  </node>
+
+
+  <!-- Node that accepts a PoseStamped() message and moves toward it, if a solution is possible. -->
+  <node pkg="baxter_stocking_stuffer" type="baxtermovement.py" name="movement_node" output="screen" >
+  </node>
+
+  <!-- Once stocking has been identified, determines the pose of the stocking using QR code -->
+  <node pkg="baxter_stocking_stuffer" type="poseusingidandqrcode.py" name="stocking_pose" output="screen" >
+  </node> -->
+
+  <!-- Node to publish center of object after thresholded with OpenCV -->
+  <node pkg="baxter_stocking_stuffer" type="open_cv_vision.py" name="vision_node" output="screen" >
+  </node>
+
+  <!-- Node listening to center of object that publishes PoseStamped() message for Baxter's gripper to get within grapsing reach -->
+  <node pkg="baxter_stocking_stuffer" type="poseusingcolordetection.py" name="color_node" output="screen" >
+  </node>
+
+
+  <!-- Node that moves Baxter's gripper and held present back to stocking, then releases into stocking -->
+  <node pkg="baxter_stocking_stuffer" type="back_to_stocking_and_release.py" name="returns_present" output="screen" >
+  </node>
 
 </launch>
 ```
