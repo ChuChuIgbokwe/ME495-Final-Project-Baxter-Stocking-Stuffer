@@ -53,81 +53,30 @@ Outline of the steps that went into building the package that will run Baxter th
 6. Move Baxter's gripper to the present location  
 7. Pick up the present  
 8. Move Baxter's gripper to the corresponding stocking location  
-9. Drop the present into the stocking
-10. Repeat steps 1-9 until Baxter has stuffed all of the stockings appropriately
+9. Drop the present into the stocking  
 
 
 <a name="Implementation"></a>
 ###Implementation 
 
 
-Below is what the launch file looks like. It starts each of the nodes in the sequence in which they will be used. This is the launch file that you will need to run to run the full sequence. The other launch file in the folder is for simply starting up and testing the ar_track package in order to find ID numbers.
 
+Below is what the launch file looks like:  
 ```
 <launch>
 
-  <!-- Include launch file that starts AR tracker and identifies stocking -->
-  <include file="$(find baxter_stocking_stuffer)/launch/ar_trackv2.launch"/>
-
-
-  <!-- Node to open Baxter's left hand camera, after closing them all -->
-  <node pkg="baxter_tools" type="camera_control.py" name="close_left_camera" output="screen"  args="-c left_hand_camera">
-  </node>
-  <node pkg="baxter_tools" type="camera_control.py" name="close_right_camera" output="screen"  args="-c right_hand_camera">
-  </node>
-  <node pkg="baxter_tools" type="camera_control.py" name="close_head_camera" output="screen"  args="-c head_camera">
-  </node>
-
-  <node pkg="baxter_tools" type="camera_control.py" name="open_left_camera" output="screen"  args="-o left_hand_camera -r 640x400">
-  </node>
-
-
-  <!-- Launch the tracking node -->
-  <node pkg="visp_auto_tracker" type="visp_auto_tracker" name="visp_auto_tracker" output="log">
-    <param name="model_path" type="string" value="$(find visp_auto_tracker)/models" />
-    <param name="model_name" type="string" value="pattern" />
-    <param name="debug_display" type="bool" value="True" />
-        
-    <remap from="/visp_auto_tracker/camera_info" to="/cameras/left_hand_camera/camera_info"/>
-    <remap from="/visp_auto_tracker/image_raw" to="/cameras/left_hand_camera/image"/>
-  </node>
-
-
-  <!-- Node that accepts a PoseStamped() message and moves toward it, if a solution is possible. -->
-  <node pkg="baxter_stocking_stuffer" type="baxtermovement.py" name="movement_node" output="screen" >
-  </node>
-
-  <!-- Once stocking has been identified, determines the pose of the stocking using QR code -->
-  <node pkg="baxter_stocking_stuffer" type="poseusingidandqrcode.py" name="stocking_pose" output="screen" >
-  </node> -->
-
-  <!-- Node to publish center of object after thresholded with OpenCV -->
-  <node pkg="baxter_stocking_stuffer" type="open_cv_vision.py" name="vision_node" output="screen" >
-  </node>
-
-  <!-- Node listening to center of object that publishes PoseStamped() message for Baxter's gripper to get within grapsing reach -->
-  <node pkg="baxter_stocking_stuffer" type="poseusingcolordetection.py" name="color_node" output="screen" >
-  </node>
-
-
-  <!-- Node that moves Baxter's gripper and held present back to stocking, then releases into stocking -->
-  <node pkg="baxter_stocking_stuffer" type="back_to_stocking_and_release.py" name="returns_present" output="screen" >
-  </node>
-
-
 </launch>
-
 ```
 
 <a name="Dependencies"></a>
-###Dependencies:
+###Dependencies 
 - `ar_track`
 - `visp_auto_tracker`
 - ` `
 - ` `
 
 <a name="Package Installation"></a>
-###Package Installation:
+###Package Installation 
 The following packages need to be installed
 - `ar_track_alvar $ sudo apt-get install`
 
@@ -140,17 +89,16 @@ The following packages need to be installed
 ###Main Scripts:
 These nodes run in a certain sequence of steps. The way this is accomplished is by having each of these nodes listen to certain topics that contain boolean messages of true and false. Published messages of true to certain topics begin specific actions and the opposite is true for when false messages are published.
 
-- `needed_present_identifier.py` 
+- <h4>needed_present_identifier.py
 
 Overall function: This node kicks off the stocking stuffing sequence. In addition, it is needed to identify whose present Baxter needs to search for on the table. 
 
 Published topics:
-
-/color_identifier
-/scanned_stocking_id
-/start/sweep
-/start/stockingpose
-/baxter_movement/posestamped
+- `/color_identifier`
+- `/scanned_stocking_id`
+- `/start/sweep`
+- `/start/stockingpose`
+- `/baxter_movement/posestamped`
 
 When an ID that has not had a present associated with it yet is found 
 
@@ -161,11 +109,32 @@ start stockingpose; published to true
 baxter movement stamped
 
 Subscribers:
-ar pose marker
-start/sweep
-visp auto tracker
+- `ar_pose_marker`
+- `start/sweep`
+- `/visp_auto_tracker/object_position`
 
-- `baxtermovement.py`
+- <h4>poseusingidandqr.py
+
+Overall function: It gets the position of the stocking, moves to it and publishes a message about its location
++ The node starts if state `/start/stockingpose` is True
++ It sets the state of to `pose/stocking` False
++ It sets the state of `start/colordetection` to True at the end starting the next node
+
+Publishers:
+- `baxter_movement/posestamped`
+- `start/stockingpose`
+- `pose/stocking`
+- `start/colordetection`
+
+Subscribers:
+- `/robot/limb/left/endpoint_state`
+- `/visp_auto_tracker/object_position`
+- `/ar_pose_marker`
+- `scanned_stocking_id`
+- `/start/stockingpose`
+
+
+- <h4>open_cv_vision.py
 
 Overall function:
 
@@ -173,25 +142,24 @@ Publishers:
 
 Subscribers:
 
- 
-- `open_cv_vision.py`
 
-Overall function:
+- <h4>poseusingcolordetection.py
 
-Publishers:
-
-Subscribers:
-
-
-- `poseusingcolordetection.py`
-
-Overall function:
+Overall function: It locates the object and moves to a position above the centre of the object and publishes it. It also moves the end effector to the object and grasps it.It then moves to the position above the table it started looking for the present from.
+-The node starts when `/start/colordetection` is True. It publishes False to this topic at the end when the action is complete.
+-It changes the state of `start/backtostocking` to True to start the next node
 
 Publishers:
+- `baxter_movement/posestamped`
+- `start/colordetection`
+- `start/backtostocking`
 
 Subscribers:
+- `/robot/limb/left/endpoint_state`
+- `/opencv/center_of_object`
+- `/start/colordetection`
 
-- `back_to_stocking_and_release.py`
+- <h4>back_to_stocking_and_release.py`
 
 Overall function:
 
@@ -208,8 +176,8 @@ Publishers:
 Subscribers:
 
 <a name="Conclusions"></a>
-###Conclusions: 
-####Future Steps:
+###Conclusions 
+
 
 
 ![Baxter Stocking Stuffer picture](https://raw.githubusercontent.com/ChuChuIgbokwe/ME495-Final-Project-Baxter-Stocking-Stuffer/master/baxterpic.jpeg)
