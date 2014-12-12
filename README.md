@@ -20,7 +20,9 @@ Group: Sabeen Admani, Chukwunyere Igbokwe, Josh Marino, and Andrew Turchina
 ###Objective
 The goal of this project is to get a [Baxter Robot](http://www.rethinkrobotics.com/baxter/) to act as Santa's [elf](http://en.wikipedia.org/wiki/Christmas_elf) helper.  Baxter will have a set of presents and a set of stockings in his workspace.  Baxter will identify a stocking, locate the corresponding present, and then place the present in the stocking.
 
+Click on the image below to watch the video!
 [![Screenshot](https://raw.githubusercontent.com/ChuChuIgbokwe/ME495-Final-Project-Baxter-Stocking-Stuffer/master/clippicture.png)](https://vimeo.com/114372776)
+
 
 <a name="Equipment and Hardware Requirements"></a>
 ###Equipment and Hardware Requirements
