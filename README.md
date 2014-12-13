@@ -1,7 +1,7 @@
 ME495-Final-Project-Baxter-Stocking-Stuffer
 ===========================================
 
-Group: Sabeen Admani, Chukwunyere Igbokwe, Josh Marino, and Andrew Turchina
+Team members: Sabeen Admani, Chukwunyere Igbokwe, Josh Marino, and Andrew Turchina
 
 ###Table of Contents
 [Objective](#Objective)  
@@ -10,9 +10,8 @@ Group: Sabeen Admani, Chukwunyere Igbokwe, Josh Marino, and Andrew Turchina
 [Project Overview](#Project Overview)  
 [Implementation](#Implementation)  
 [Dependencies](#Dependencies)  
-[Package Installation](#Package Installation)  
-[Other Scripts](#Other Scripts) 
-[Future Improvements](#Future Improvements)  
+[Main Scripts](#Main Scripts) 
+[Further Improvements](#Further Improvements)  
 [Conclusions](#Conclusions)  
 
 
@@ -40,7 +39,8 @@ Click on the image below to watch the video!
 #####Setup Baxter  
 Rethink Robotics has [Baxter Setup](http://sdk.rethinkrobotics.com/wiki/Baxter_Setup) instructions and [Workstation Setup](http://sdk.rethinkrobotics.com/wiki/Workstation_Setup) instructions.   
 #####Setup demo area
-There needs to be a table and presents within Baxter's reachable workspace  
+There needs to be a table with presents within Baxter's reachable workspace along with a wall of stockings. Both QR codes and ar_tags were used in this project. QR codes can be generated online in many places. To create ar_tags, there are [generic samples](http://wiki.ros.org/ar_track_alvar?action=AttachFile&do=view&target=markers0to8.png) or one can generate by `rosrun ar_track_alvar createMarker`  
+
 ![Baxter Workspace](https://raw.githubusercontent.com/ChuChuIgbokwe/ME495-Final-Project-Baxter-Stocking-Stuffer/master/baxter_workspace_placeholder.jpeg)  
 
 
@@ -62,7 +62,7 @@ Outline of the steps that went into building the package that will run Baxter th
 <a name="Implementation"></a>
 ###Implementation 
 
-There are two differnet launch files in our package. ar_trackv2.launch_ is used when you simply want to run the ar_track_alvar package with your camera to see what the tag ID numbers are and test the "present identifying" when you appropriate change the ID numbers and present colors in the "needed_present_identifier.py" script to match what is specific to your project.
+There are two different launch files in our package. ar_trackv2.launch_ is used when you simply want to run the ar_track_alvar package with your camera to see what the tag ID numbers are and test the "present identifying" when you appropriate change the ID numbers and present colors in the "needed_present_identifier.py" script to match what is specific to your project.
 
 To run the entire sequence, you can simply do a roslaunch:
 ```
@@ -127,20 +127,17 @@ Below is what the launch file used to run the stocking stuffing sequence looks l
 
 <a name="Dependencies"></a>
 ###Dependencies 
-- `ar_track`
-- `visp_auto_tracker`
-
-<a name="Package Installation"></a>
-###Package Installation 
-The following packages need to be installed
-- `ar_track_alvar $ sudo apt-get install`
+- [visp_auto_tracker](http://wiki.ros.org/visp_auto_tracker)  
+- [ar _ track _ alvar](http://wiki.ros.org/ar_track_alvar)  
 
 
 
-<a name="Other Scripts"></a>
+<a name="Main Scripts"></a>
 
 ###Main Scripts:
 These nodes run in a certain sequence of steps. The way this is accomplished is by having each of these nodes listen to certain topics that contain boolean messages of true and false. Published messages of true to certain topics begin specific actions and the opposite is true for when false messages are published.
+
+![node_map](https://raw.githubusercontent.com/ChuChuIgbokwe/ME495-Final-Project-Baxter-Stocking-Stuffer/master/node_map.png)  
 
 <h4>needed_present_identifier.py
 
@@ -212,7 +209,7 @@ Subscribers:
 - `/opencv/center_of_object`
 - `/start/colordetection`
 
-<h4>back_to_stocking_and_release.py`
+<h4>back_to_stocking_and_release.py
 
 Overall Function: It brings the present back to the stocking pose it found in the beginning of the sequence and opens the gripper, dropping the present into the stocking.
 + The node starts when the state of `/start/backtostocking` is True. It publishes to False when the action is complete
@@ -242,7 +239,4 @@ An improvement to the project would be to get Baxter to Identify Presents and St
 It was a worthwhile project. Hopefully with some improvements we'll settle for  running Santa's shop floor since Baxter will never be able to fit down chimneys.
 Ho-Ho-Ho!
 
-
-
-![Baxter Stocking Stuffer picture](https://raw.githubusercontent.com/ChuChuIgbokwe/ME495-Final-Project-Baxter-Stocking-Stuffer/master/baxterpic.jpeg)
 
