@@ -217,7 +217,7 @@ Subscribers:
 Overall Function: It brings the present back to the stocking pose it found in the beginning of the sequence and opens the gripper, dropping the present into the stocking.
 + The node starts when the state of `/start/backtostocking` is True. It publishes to False when the action is complete
 + Gets the pose of the stocking that was obtained in the second step of the sequence by listening to the topic `/pose/stocking` and publishes that poseStamped message to `/baxter_movement/posestamped` to move his end effector to that pose
-+ Once his arm reaches that pose, the node changes the state of /start/releasepresent to Tre
++ Once his arm reaches that pose, the node changes the state of /start/releasepresent to True
 + After releasing the stocking, the node changes the state of /start/backtostocking to False and /start/sweep back to True to begin the sequence again
 
 
@@ -235,8 +235,7 @@ Subscribed Topics:
 
 <a name="Further Improvements"></a>
 ###Further Improvements
-An improvement to the project would be to get Baxter to Identify Presents and Stockings using Microsoft's Kinect or the Asus Xtion Pro Live and Point Cloud Libraries thus eliminating the need for tags. As point cloud libraries are more accurate than tags but are harder to get working.
-Another Improvement would be to use both arms at the same time.
+An improvement to the project would be to get Baxter to Identify Presents and Stockings using Microsoft's Kinect or the Asus Xtion Pro Live and Point Cloud Libraries thus eliminating the need for tags. One reason for this is that point cloud libraries are more accurate than tags but are harder to get working; if we get it working, we could have it so we have pictures of each person on the stocking and have Baxter recognize who it is and then sort presents based on that. Furthermore, we could eliminate the need for color recognition of objects and locate presents based on their shape instead. Another Improvement would be to use both arms at the same time. For example, one arm could open the stocking while the other hand drops the present in, eliminating the need for having a cylinder in the stocking to hold it open.
 
 <a name="Conclusions"></a>
 ###Conclusions 
